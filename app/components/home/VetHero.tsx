@@ -254,30 +254,30 @@ export default function VetHero() {
   }, [messages, isTyping]);
 
   // Handle manual message entry
-  const handleManualChat = useCallback(
-    (e: React.FormEvent) => {
-      e.preventDefault();
-      const text = chatInput.trim();
-      if (!text) return;
+  // const handleManualChat = useCallback(
+  //   (e: React.FormEvent) => {
+  //     e.preventDefault();
+  //     const text = chatInput.trim();
+  //     if (!text) return;
 
-      setMessages((prev) => [...prev, { who: "user", text }]);
-      setChatInput("");
-      setIsTyping(true);
+  //     setMessages((prev) => [...prev, { who: "user", text }]);
+  //     setChatInput("");
+  //     setIsTyping(true);
 
-      setTimeout(() => {
-        setIsTyping(false);
-        setMessages((prev) => [
-          ...prev,
-          {
-            who: "ai",
-            tag: "Kora · Vet-trained guidance",
-            text: "Evaluating symptom parameters against clinical vet resources… Ask anything about food, medications, or behavioral changes.",
-          },
-        ]);
-      }, 1200);
-    },
-    [chatInput]
-  );
+  //     setTimeout(() => {
+  //       setIsTyping(false);
+  //       setMessages((prev) => [
+  //         ...prev,
+  //         {
+  //           who: "ai",
+  //           tag: "Kora · Vet-trained guidance",
+  //           text: "Evaluating symptom parameters against clinical vet resources… Ask anything about food, medications, or behavioral changes.",
+  //         },
+  //       ]);
+  //     }, 1200);
+  //   },
+  //   [chatInput]
+  // );
 
   // Trigger Voice Consult via ElevenLabs ConvAI widget
   const handleOpenVoiceConsult = useCallback(() => {
@@ -401,7 +401,7 @@ export default function VetHero() {
               </div>
 
               {/* Input & Voice Controls */}
-              <form className="console-foot" onSubmit={handleManualChat}>
+              {/* <form className="console-foot" onSubmit={handleManualChat}>
                 <input
                   type="text"
                   className="console-input"
@@ -432,7 +432,7 @@ export default function VetHero() {
                     />
                   </svg>
                 </button>
-              </form>
+              </form> */}
             </div>
           </div>
         </div>
