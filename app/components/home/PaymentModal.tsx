@@ -1,35 +1,31 @@
 "use client";
-import { useState, useEffect, useMemo } from "react";
+
+import React, { useState, useEffect, useMemo } from "react";
 import { loadStripe, StripeElementsOptions } from "@stripe/stripe-js";
-import {
-  Elements,
-  CardElement,
-  useStripe,
-  useElements,
-} from "@stripe/react-stripe-js";
+import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
-// Initialize Stripe
+
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
 interface PaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
   plan: "basic" | "premium" | "professional" | null;
-  userId: string;
+  userId?: string;
   onPaymentSuccess?: () => void;
 }
 
 const PLAN_DETAILS = {
-  basic: { name: "Basic", price: "$9.99/month" },
-  premium: { name: "Premium", price: "$19.99/month" },
-  professional: { name: "Professional", price: "$29.99/month" },
+  basic: { name: "Basic Plan", price: "$5.99", period: "/month", desc: "10 min trial consult pack" },
+  premium: { name: "Pawblem Solver Pro", price: "$14.99", period: "/month", desc: "20 vet-trained mins / mo + rollover" },
+  professional: { name: "Professional Plan", price: "$29.99", period: "/month", desc: "60 mins / mo + priority routing" },
 };
 
-const CardForm = ({ 
-  plan, 
-  userId, 
-  onClose, 
+const CardForm = ({
+  plan,
+  userId,
+  onClose,
   clientSecret,
   paymentMethods,
   useNewCard,
@@ -37,10 +33,10 @@ const CardForm = ({
   selectedPaymentMethod,
   setSelectedPaymentMethod,
   onPaymentSuccess,
-}: { 
-  plan: string; 
-  userId: string; 
-  onClose: () => void; 
+}: {
+  plan: string;
+  userId: string;
+  onClose: () => void;
   clientSecret: string;
   paymentMethods: any[];
   useNewCard: boolean;
@@ -60,20 +56,13 @@ const CardForm = ({
     e.preventDefault();
 
     if (!stripe || !clientSecret) {
-      setError("Payment system not ready");
+      setError("Payment system is not ready. Please try again.");
       return;
     }
 
-    // Validate based on payment method choice
     if (useNewCard) {
       if (!elements || !cardholderName.trim()) {
-        setError("Please fill in all fields");
-        return;
-      }
-
-      const cardElement = elements.getElement(CardElement);
-      if (!cardElement) {
-        setError("Card element not found");
+        setError("Please enter the cardholder name");
         return;
       }
     } else {
@@ -90,17 +79,15 @@ const CardForm = ({
       let paymentIntent;
 
       if (useNewCard) {
-        // Confirm the payment intent with new card element
-        if (!elements) {
-          setError("Payment elements not ready");
+        const cardElement = elements?.getElement(CardElement);
+        if (!cardElement) {
+          setError("Card element not found");
           return;
         }
 
-        const cardElement = elements.getElement(CardElement);
-
         const { error: confirmError, paymentIntent: pi } = await stripe.confirmCardPayment(clientSecret, {
           payment_method: {
-            card: cardElement!,
+            card: cardElement,
             billing_details: {
               name: cardholderName,
             },
@@ -111,10 +98,8 @@ const CardForm = ({
           setError(confirmError.message || "Payment confirmation failed");
           return;
         }
-
         paymentIntent = pi;
       } else {
-        // Confirm the payment intent with saved payment method
         const { error: confirmError, paymentIntent: pi } = await stripe.confirmCardPayment(clientSecret, {
           payment_method: selectedPaymentMethod,
         });
@@ -123,19 +108,15 @@ const CardForm = ({
           setError(confirmError.message || "Payment confirmation failed");
           return;
         }
-
         paymentIntent = pi;
       }
 
       if (paymentIntent && paymentIntent.status === "succeeded") {
-        let total_time = "";
-        if (plan === "basic") {
-          total_time = "30";
-        } else if (plan === "premium") {
-          total_time = "90";
-        }
+        let total_time = "20";
+        if (plan === "basic") total_time = "10";
+        else if (plan === "premium") total_time = "20";
+        else if (plan === "professional") total_time = "60";
 
-        // Process the successful payment
         const response = await fetch("/api/checkout", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -154,15 +135,24 @@ const CardForm = ({
         }
 
         if (data.success) {
-          // alert("Payment successful! Your subscription is now active.");
           onClose();
-          onPaymentSuccess?.(); // Call the callback to close the modal in VoiceChat
-          router.push("/chat"); // Refresh to show updated subscription status
+          onPaymentSuccess?.();
+          router.refresh();
+
+          setTimeout(() => {
+            Swal.fire({
+              icon: "success",
+              title: "Subscription Activated!",
+              text: `Your ${PLAN_DETAILS[plan as keyof typeof PLAN_DETAILS]?.name || "Plan"} is now active.`,
+              timer: 3000,
+              timerProgressBar: true,
+              showConfirmButton: false,
+            });
+          }, 100);
         } else {
           setError("Payment processing failed");
         }
       }
-
     } catch (err: any) {
       console.error("Payment error:", err);
       setError("An unexpected error occurred. Please try again.");
@@ -171,99 +161,102 @@ const CardForm = ({
     }
   };
 
+  const planInfo = PLAN_DETAILS[plan as keyof typeof PLAN_DETAILS];
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      {/* Payment Method Selection */}
+    <form onSubmit={handleSubmit} className="space-y-4 text-left">
+      {/* Method Tabs */}
       {paymentMethods.length > 0 && (
-        <div className="space-y-3">
-          <label className="block text-sm font-medium text-gray-700">
-            Payment Method
-          </label>
-
-          {/* Toggle between saved methods and new card */}
-          <div className="flex gap-4 mb-4">
-            <button
-              type="button"
-              onClick={() => setUseNewCard(false)}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                !useNewCard
-                  ? "bg-purple-500 text-white"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
-            >
-              Use Saved Card
-            </button>
-            <button
-              type="button"
-              onClick={() => setUseNewCard(true)}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                useNewCard
-                  ? "bg-purple-500 text-white"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
-            >
-              Use New Card
-            </button>
-          </div>
-
-          {/* Saved Payment Methods */}
-          {!useNewCard && (
-            <div className="space-y-2">
-              {paymentMethods.map((pm) => (
-                <label key={pm.id} className="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value={pm.id}
-                    checked={selectedPaymentMethod === pm.id}
-                    onChange={(e) => setSelectedPaymentMethod(e.target.value)}
-                    className="mr-3 text-[#B57DFF] focus:ring-orange-500"
-                  />
-                  <div className="flex-1">
-                    <div className="font-medium capitalize">
-                      {pm.card.brand} ending in {pm.card.last4}
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      Expires {pm.card.exp_month}/{pm.card.exp_year}
-                    </div>
-                  </div>
-                </label>
-              ))}
-            </div>
-          )}
+        <div className="flex gap-2 mb-3">
+          <button
+            type="button"
+            onClick={() => setUseNewCard(false)}
+            className={`flex-1 py-2.5 rounded-xl font-bold text-xs cursor-pointer border transition-all ${
+              !useNewCard
+                ? "bg-gradient-to-br from-[#17C97F] to-[#0E9C63] text-[#06180F] border-transparent shadow-xs"
+                : "bg-white border-[#E6DDC0] text-[#4C5C53] hover:bg-[#F2EAD3]/30"
+            }`}
+          >
+            Saved Card
+          </button>
+          <button
+            type="button"
+            onClick={() => setUseNewCard(true)}
+            className={`flex-1 py-2.5 rounded-xl font-bold text-xs cursor-pointer border transition-all ${
+              useNewCard
+                ? "bg-gradient-to-br from-[#17C97F] to-[#0E9C63] text-[#06180F] border-transparent shadow-xs"
+                : "bg-white border-[#E6DDC0] text-[#4C5C53] hover:bg-[#F2EAD3]/30"
+            }`}
+          >
+            New Card
+          </button>
         </div>
       )}
 
-      {/* New Card Form */}
+      {/* Saved Cards */}
+      {!useNewCard && paymentMethods.length > 0 && (
+        <div className="space-y-2">
+          {paymentMethods.map((pm) => (
+            <label
+              key={pm.id}
+              className={`flex items-center gap-3 p-3 rounded-2xl border cursor-pointer transition-all ${
+                selectedPaymentMethod === pm.id
+                  ? "border-[#17C97F] bg-[#F3FBF6]"
+                  : "border-[#E6DDC0] bg-white hover:bg-[#F2EAD3]/20"
+              }`}
+            >
+              <input
+                type="radio"
+                name="savedPlanMethod"
+                value={pm.id}
+                checked={selectedPaymentMethod === pm.id}
+                onChange={(e) => setSelectedPaymentMethod(e.target.value)}
+                className="accent-[#0E9C63] w-4 h-4"
+              />
+              <div className="flex-1 text-xs">
+                <span className="font-bold capitalize text-[#10201A]">
+                  {pm.card?.brand} ending in {pm.card?.last4}
+                </span>
+                <span className="block text-[11px] text-[#4C5C53]">
+                  Exp: {pm.card?.exp_month}/{pm.card?.exp_year}
+                </span>
+              </div>
+            </label>
+          ))}
+        </div>
+      )}
+
+      {/* New Card Fields */}
       {useNewCard && (
-        <>
+        <div className="space-y-3">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-xs font-semibold text-[#4C5C53] mb-1 uppercase tracking-wider">
               Cardholder Name
             </label>
             <input
               type="text"
               value={cardholderName}
               onChange={(e) => setCardholderName(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-              placeholder="John Doe"
+              className="w-full px-4 py-2.5 rounded-xl border border-[#E6DDC0] bg-[#F2EAD3]/20 text-xs font-sans text-[#10201A] focus:outline-none focus:border-[#17C97F]"
+              placeholder="Full Name on Card"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-xs font-semibold text-[#4C5C53] mb-1 uppercase tracking-wider">
               Card Information
             </label>
-            <div className="p-3 border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-orange-500 focus-within:border-transparent">
+            <div className="p-3 border border-[#E6DDC0] rounded-xl bg-white focus-within:border-[#17C97F]">
               <CardElement
                 options={{
                   style: {
                     base: {
-                      fontSize: "16px",
-                      color: "#424770",
+                      fontSize: "14px",
+                      color: "#10201A",
+                      fontFamily: "Inter, sans-serif",
                       "::placeholder": {
-                        color: "#aab7c4",
+                        color: "#9AB0A5",
                       },
                     },
                   },
@@ -271,73 +264,59 @@ const CardForm = ({
               />
             </div>
           </div>
-        </>
-      )}
-
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-          <div className="flex items-center">
-            <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 001 1V6a1 1 0 00-1-1z" clipRule="evenodd" />
-            </svg>
-            {error}
-          </div>
         </div>
       )}
 
-      <div className="flex gap-4 justify-center pt-4">
+      {error && (
+        <div className="p-3 bg-[#FFE8DF] border border-[#FF6A4D]/30 text-[#E24E30] text-xs rounded-xl">
+          {error}
+        </div>
+      )}
+
+      <div className="flex gap-3 pt-2">
         <button
           type="button"
           onClick={onClose}
-          className="px-6 py-3 rounded-lg bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium transition-colors"
           disabled={loading}
+          className="flex-1 py-3 rounded-full border border-[#E6DDC0] text-xs font-bold text-[#4C5C53] hover:bg-[#F2EAD3]/40 transition-colors"
         >
           Cancel
         </button>
         <button
           type="submit"
-          className="px-6 py-3 rounded-lg bg-gradient-to-r from-[#B57DFF] to-[#ff8a1e] text-white font-semibold hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={loading || (!useNewCard && !selectedPaymentMethod)}
+          className="flex-1 py-3 rounded-full font-bold text-xs text-white bg-gradient-to-br from-[#FF6A4D] to-[#E24E30] shadow-[0_6px_16px_rgba(255,106,77,0.35)] hover:-translate-y-0.5 transition-all disabled:opacity-50 cursor-pointer"
         >
-          {loading ? "Processing..." : `Pay ${PLAN_DETAILS[plan as keyof typeof PLAN_DETAILS]?.price}`}
+          {loading ? "Processing..." : `Subscribe: ${planInfo?.price}`}
         </button>
       </div>
     </form>
   );
 };
 
-export default function PaymentModal({ isOpen, onClose, plan, userId, onPaymentSuccess }: PaymentModalProps) {
+export default function PaymentModal({
+  isOpen,
+  onClose,
+  plan,
+  userId,
+  onPaymentSuccess,
+}: PaymentModalProps) {
   const router = useRouter();
   const [clientSecret, setClientSecret] = useState("");
   const [paymentMethods, setPaymentMethods] = useState<any[]>([]);
   const [useNewCard, setUseNewCard] = useState(false);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>("");
   const [loadingPaymentMethods, setLoadingPaymentMethods] = useState(false);
-  const [currentPlan, setCurrentPlan] = useState<string>("");
 
-  // Redirect to login if userId is empty
   useEffect(() => {
     if (isOpen && (!userId || userId.trim() === "")) {
-      // alert("Please log in to make a payment");
-      // Swal.fire({
-      //   icon: "info",
-      //   title: "Welcome to PetCare!",
-      //   text: "Create an account to make a payment",
-      //   timer: 2000,
-      //   showConfirmButton: false,
-      //   showCloseButton: false,
-
-      // });
       router.push("/signup");
       onClose();
-      return;
     }
   }, [isOpen, userId, router, onClose]);
 
   useEffect(() => {
-    // Create PaymentIntent as soon as the modal opens
     if (isOpen && plan && userId && userId.trim() !== "") {
-      setCurrentPlan(plan);
       fetch("/api/create-payment-intent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -353,7 +332,6 @@ export default function PaymentModal({ isOpen, onClose, plan, userId, onPaymentS
     }
   }, [isOpen, plan, userId]);
 
-  // Fetch payment methods when modal opens
   useEffect(() => {
     if (isOpen && userId && userId.trim() !== "") {
       setLoadingPaymentMethods(true);
@@ -364,14 +342,12 @@ export default function PaymentModal({ isOpen, onClose, plan, userId, onPaymentS
       })
         .then((res) => res.json())
         .then((data) => {
-          if (data.paymentMethods) {
+          if (data.paymentMethods && data.paymentMethods.length > 0) {
             setPaymentMethods(data.paymentMethods);
-            if (data.paymentMethods.length > 0) {
-              setSelectedPaymentMethod(data.paymentMethods[0].id);
-              setUseNewCard(false);
-            } else {
-              setUseNewCard(true);
-            }
+            setSelectedPaymentMethod(data.paymentMethods[0].id);
+            setUseNewCard(false);
+          } else {
+            setUseNewCard(true);
           }
         })
         .catch((err) => console.error("Failed to fetch payment methods:", err))
@@ -387,20 +363,36 @@ export default function PaymentModal({ isOpen, onClose, plan, userId, onPaymentS
     },
   };
 
-  // Memoize options to prevent unnecessary re-renders
   const memoizedOptions = useMemo(() => options, [clientSecret]);
 
   if (!isOpen || !plan) return null;
 
+  const planInfo = PLAN_DETAILS[plan as keyof typeof PLAN_DETAILS];
+
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 p-4 flex justify-center items-center w-full h-full">
-      <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[600] flex items-center justify-center p-4 animate-modal-in">
+      <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full relative shadow-2xl border border-[#E6DDC0]">
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute top-4 right-4 w-8 h-8 rounded-full bg-[#FFE8DF] text-[#E24E30] hover:bg-[#FF6A4D] hover:text-white flex items-center justify-center text-sm font-bold transition-colors cursor-pointer"
+        >
+          ✕
+        </button>
+
         <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold mb-2">
-            Subscribe to {PLAN_DETAILS[plan as keyof typeof PLAN_DETAILS]?.name}
+          <div className="w-14 h-14 mx-auto mb-3 bg-[#DDF7E9] rounded-2xl flex items-center justify-center text-2xl text-[#0E9C63]">
+            🐾
+          </div>
+          <h2 className="text-xl font-bold text-[#10201A] mb-1">
+            Subscribe to {planInfo?.name}
           </h2>
-          <p className="text-gray-600">
-            {PLAN_DETAILS[plan as keyof typeof PLAN_DETAILS]?.price} per month
+          <p className="text-2xl font-extrabold text-[#0E9C63] mb-1">
+            {planInfo?.price}
+            <span className="text-xs font-semibold text-[#4C5C53]">{planInfo?.period}</span>
+          </p>
+          <p className="text-xs text-[#4C5C53]">
+            {planInfo?.desc}. Cancel anytime.
           </p>
         </div>
 
@@ -408,7 +400,7 @@ export default function PaymentModal({ isOpen, onClose, plan, userId, onPaymentS
           <Elements options={memoizedOptions} stripe={stripePromise}>
             <CardForm
               plan={plan}
-              userId={userId}
+              userId={userId || ""}
               onClose={onClose}
               clientSecret={clientSecret}
               paymentMethods={paymentMethods}
@@ -420,9 +412,9 @@ export default function PaymentModal({ isOpen, onClose, plan, userId, onPaymentS
             />
           </Elements>
         ) : (
-          <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto"></div>
-            <p className="mt-2 text-gray-600">Preparing payment form...</p>
+          <div className="text-center py-8 text-xs text-[#4C5C53]">
+            <div className="w-6 h-6 border-2 border-[#17C97F] border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+            <span>Preparing secure subscription checkout...</span>
           </div>
         )}
       </div>

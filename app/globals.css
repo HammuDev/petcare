@@ -1,49 +1,149 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700;9..144,800&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700;800&display=swap');
 
-/* :root {
-  --background: #ffffff;
-  --foreground: #171717;
-} */
+:root {
+  --ink: #0A1512;
+  --ink-panel: #0F241D;
+  --ink-input: #081711;
+  --ink2: #0F1F19;
+  --ink3: #132A22;
+  --line-dark: rgba(234, 243, 238, 0.12);
+  --lighttext: #EAF3ED;
+  --lighttext-muted: #9AB0A5;
 
-body,html{
+  --paper: #FBF7EC;
+  --paper-alt: #F2EAD3;
+  --card: #FFFFFF;
+  --inktext: #10201A;
+  --inktext-soft: #4C5C53;
+  --line-light: #E6DDC0;
+
+  --emerald: #17C97F;
+  --emerald-deep: #0E9C63;
+  --emerald-soft: #7DE8B8;
+  --emerald-tint: #EAF8F1;
+  --emerald-tint2: #DDF7E9;
+  --emerald-glow: rgba(23, 201, 127, 0.35);
+
+  --coral: #FF6A4D;
+  --coral-deep: #E24E30;
+  --coral-soft: #FFA08B;
+  --coral-tint: #FFE8DF;
+  --coral-glow: rgba(255, 106, 77, 0.35);
+
+  --gold: #F4B740;
+
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+}
+
+body, html {
   scroll-behavior: smooth;
 }
 
-@theme inline {
-  /* --color-background: var(--background); */
-  /* --color-foreground: var(--foreground); */
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-poppins: var(--font-poppins);
-}
-
-/* @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-} */
-
 body {
-  /* background: var(--background); */
-  /* color: var(--foreground); */
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  background-color: var(--paper);
+  color: var(--inktext);
 }
 
-/* Animation delay classes for recording rings */
-.animation-delay-150 {
-  animation-delay: 150ms;
+/* Keyframes */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
 }
 
-.animation-delay-300 {
-  animation-delay: 300ms;
+@keyframes livePulse {
+  0% { box-shadow: 0 0 0 0 rgba(255, 106, 77, 0.6); }
+  70% { box-shadow: 0 0 0 6px rgba(255, 106, 77, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 106, 77, 0); }
 }
 
-.animation-delay-600 {
-  animation-delay: 600ms;
+@keyframes draw-line {
+  0% { stroke-dashoffset: 340; }
+  100% { stroke-dashoffset: 0; }
 }
 
-/* Line clamp utility for text truncation */
+@keyframes drift1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(30px, 20px) scale(1.08); }
+}
+
+@keyframes drift2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-25px, -20px) scale(1.06); }
+}
+
+@keyframes ring-pulse {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  50% { transform: scale(1.15); opacity: 0; }
+  100% { transform: scale(0.95); opacity: 0; }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+
+@keyframes modal-in {
+  from { opacity: 0; transform: scale(0.95) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes toast-out {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-10px); }
+}
+
+@keyframes typing-dot {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-4px); opacity: 1; }
+}
+
+@keyframes ripple {
+  to { transform: scale(4); opacity: 0; }
+}
+
+.animate-pulse-dot { animation: pulse-dot 2s infinite ease-in-out; }
+.animate-draw-line { animation: draw-line 2.6s ease infinite; }
+.animate-drift1 { animation: drift1 14s infinite ease-in-out; }
+.animate-drift2 { animation: drift2 16s infinite ease-in-out; }
+.animate-ring-pulse { animation: ring-pulse 2.4s infinite ease-out; }
+.animate-shake { animation: shake 0.4s ease-in-out; }
+.animate-modal-in { animation: modal-in 0.25s ease-out; }
+.animate-toast-in { animation: toast-in 0.25s ease-out; }
+.animate-toast-out { animation: toast-out 0.25s ease-in; }
+@keyframes split-in-left {
+  0% { opacity: 0; transform: translateX(-40px) scale(0.97); }
+  100% { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+@keyframes split-in-right {
+  0% { opacity: 0; transform: translateX(40px) scale(0.97); }
+  100% { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+.animate-split-left {
+  animation: split-in-left 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-split-right {
+  animation: split-in-right 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Custom scrollbars */
+.custom-scroll::-webkit-scrollbar { width: 5px; height: 5px; }
+.custom-scroll::-webkit-scrollbar-thumb { background: rgba(23, 201, 127, 0.25); border-radius: 10px; }
+.custom-scroll::-webkit-scrollbar-track { background: transparent; }
+
+/* Line clamp utility */
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;

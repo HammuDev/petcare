@@ -1,15 +1,20 @@
-// import { getAuthFromCookies } from "@/lib/auth";
-// import { redirect } from "next/navigation";
-'use client';
-import { connectToDatabase } from "@/lib/mongoose";
-import Transaction from "@/models/Transaction";
-import User from "@/models/User";
+"use client";
+
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { BsArrowLeft, BsCreditCard, BsCalendar, BsCheckCircle, BsXCircle, BsClock, BsPlus } from "react-icons/bs";
-import MinutesSection from "./MinutesSection";
-import { useEffect, useState } from "react";
-import ChatMenu from "../components/chat/ChatMenu";
 import { useRouter } from "next/navigation";
+import {
+  CreditCard,
+  ArrowLeft,
+  CheckCircle2,
+  XCircle,
+  Clock,
+  Receipt,
+  ShieldCheck,
+  Sparkles,
+} from "lucide-react";
+import VetNavHeader from "../components/common/VetNavHeader";
+import MinutesSection from "./MinutesSection";
 
 interface Transaction {
   _id: string;
@@ -23,222 +28,217 @@ interface Transaction {
   stripePaymentIntentId: string;
 }
 
-const getStatusIcon = (status: string) => {
-  switch (status) {
-    case "completed":
-      return <BsCheckCircle className="w-5 h-5 text-green-600" />;
-    case "failed":
-      return <BsXCircle className="w-5 h-5 text-red-600" />;
-    default:
-      return <BsClock className="w-5 h-5 text-yellow-600" />;
-  }
-};
-
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case "completed":
-      return "bg-green-100 text-green-800";
-    case "failed":
-      return "bg-red-100 text-red-800";
-    default:
-      return "bg-yellow-100 text-yellow-800";
-  }
-};
-
-const formatAmount = (amount: number, currency: string) => {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: currency.toUpperCase(),
-  }).format(amount / 100); // Convert from cents to dollars
-};
-
 export default function TransactionsPage() {
+  const router = useRouter();
   const [parsedUserData, setParsedUserData] = useState<any>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
-  const router = useRouter();
 
-  // Function to fetch transactions
-  const fetchTransactions = async () => {
-    if (!parsedUserData?.id) return;
+  const fetchTransactions = async (uid?: string) => {
+    const userId = uid || parsedUserData?.id;
+    if (!userId) return;
 
+    setLoading(true);
     try {
-      const response = await fetch('/api/get-transactions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: parsedUserData.id }),
+      const res = await fetch("/api/get-transactions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId }),
       });
-
-      const data = await response.json();
-
-      if (response.ok && data.transactions) {
+      const data = await res.json();
+      if (res.ok && data.transactions) {
         setTransactions(data.transactions);
-      } else {
-        console.error('Failed to fetch transactions:', data.error);
       }
-    } catch (error) {
-      console.error('Error fetching transactions:', error);
+    } catch (err) {
+      console.error("Failed to fetch transactions:", err);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    const userData = localStorage.getItem("user_data");
-    if (userData) {
+    const stored = localStorage.getItem("user_data");
+    if (stored) {
       try {
-        setParsedUserData(JSON.parse(userData));
+        const parsed = JSON.parse(stored);
+        setParsedUserData(parsed);
+        if (parsed?.id) fetchTransactions(parsed.id);
       } catch (e) {
-        console.error("Failed to parse user_data from localStorage", e);
+        console.error("Failed to parse user_data:", e);
       }
-    }else{
+    } else {
       router.push("/login");
     }
   }, []);
 
-  useEffect(() => {
-    fetchTransactions();
-  }, [parsedUserData?.id]);
+  const formatAmount = (amount: number, currency: string = "usd") => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: currency.toUpperCase(),
+    }).format(amount / 100);
+  };
 
-  const userMinutes = parsedUserData?.data?.total_time || 0;
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "completed":
+        return (
+          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold text-[#0E9C63] bg-[#DDF7E9]">
+            <CheckCircle2 className="w-3.5 h-3.5" />
+            <span className="capitalize">Completed</span>
+          </span>
+        );
+      case "failed":
+        return (
+          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold text-[#E24E30] bg-[#FFE8DF]">
+            <XCircle className="w-3.5 h-3.5" />
+            <span className="capitalize">Failed</span>
+          </span>
+        );
+      default:
+        return (
+          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold text-amber-700 bg-amber-100">
+            <Clock className="w-3.5 h-3.5" />
+            <span className="capitalize">Pending</span>
+          </span>
+        );
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-50">
-      {/* Header */}
-      <ChatMenu/>
-      <section className="relative overflow-hidden bg-gradient-to-r from-[#B57DFF] to-[#B57DFF]">
-        <div className="absolute inset-0 bg-black/20" />
+    <div className="min-h-screen bg-[#FBF7EC] text-[#10201A]">
+      <VetNavHeader />
 
-        {/* Back Button */}
-        <div className="absolute top-6 left-6 z-50">
+      {/* Hero Header */}
+      <section className="relative overflow-hidden bg-[radial-gradient(120%_120%_at_50%_-10%,#16332A_0%,#0A1512_65%)] text-white pt-12 pb-16 px-4 sm:px-8 text-center">
+        <div className="absolute w-[460px] h-[460px] rounded-full bg-[#17C97F] opacity-20 -top-32 -left-20 blur-[90px] pointer-events-none animate-drift1" />
+        <div className="absolute w-[360px] h-[360px] rounded-full bg-[#FF6A4D] opacity-[0.15] -bottom-32 -right-20 blur-[90px] pointer-events-none animate-drift2" />
+
+        {/* Back Link */}
+        <div className="max-w-[1140px] mx-auto text-left mb-6">
           <Link
             href="/profile"
-            className="group flex items-center space-x-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl px-4 py-3 text-white hover:bg-white/20 transition-all duration-300 hover:scale-105 hover:shadow-2xl"
+            className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-[#EAF3ED] bg-white/[0.08] hover:bg-white/[0.14] border border-white/10 px-4 py-2 rounded-full transition-colors"
           >
-            <div className="p-2 rounded-lg bg-white/20 group-hover:bg-white/30 transition-all duration-300 group-hover:rotate-12">
-              <BsArrowLeft className="w-5 h-5" />
-            </div>
-            <span className="text-sm font-semibold tracking-wide">Back to Profile</span>
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Back to Profile</span>
           </Link>
         </div>
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
-          <div className="text-center">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white mb-4">
-              Transaction History
-            </h1>
-            <p className="text-xl text-white/90 max-w-2xl mx-auto">
-              View all your payment transactions and subscription history
-            </p>
-          </div>
+        <div className="relative z-10 max-w-[640px] mx-auto">
+          <span className="inline-flex items-center gap-2 font-mono text-xs text-[#7DE8B8] bg-[#17C97F]/12 border border-[#17C97F]/25 px-3.5 py-1.5 rounded-full mb-4 tracking-wide uppercase">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#7DE8B8] animate-pulse-dot" />
+            <span>Billing | Talk Time Minutes</span>
+          </span>
+          <h1 className="text-3xl sm:text-4xl font-display font-extrabold text-white mb-2 tracking-tight">
+            Transaction History &amp; Top-Ups
+          </h1>
+          <p className="text-[#9AB0A5] text-sm sm:text-base">
+            Review your subscription history, minute purchases, and Stripe payment receipts.
+          </p>
         </div>
-
-        <div className="absolute -bottom-8 left-0 right-0 h-16 bg-gradient-to-b from-transparent to-white" />
       </section>
 
-      {/* Main Content */}
-      <section className="relative -mt-16 pb-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Minutes Purchase Section */}
+      {/* Main Dashboard Content */}
+      <main className="max-w-[1140px] mx-auto px-4 sm:px-8 -mt-8 pb-20 relative z-20 space-y-8">
+        {/* Minutes Purchase / Top-Up Section */}
+        <div className="bg-white border border-[#E6DDC0] rounded-3xl p-6 sm:p-8 shadow-xs">
           <MinutesSection
             userId={parsedUserData?.id}
             onPaymentSuccess={() => {
-              fetchTransactions();
-              setLoading(true);
+              if (parsedUserData?.id) fetchTransactions(parsedUserData.id);
             }}
           />
+        </div>
+
+        {/* Transactions List */}
+        <div className="bg-white border border-[#E6DDC0] rounded-3xl p-6 sm:p-8 shadow-xs">
+          <div className="flex items-center justify-between mb-5">
+            <h3 className="text-lg font-bold text-[#10201A] flex items-center gap-2">
+              <Receipt className="w-5 h-5 text-[#0E9C63]" />
+              <span>Payment Receipts</span>
+            </h3>
+            <span className="text-xs font-mono text-[#4C5C53] bg-[#F2EAD3]/40 px-3 py-1 rounded-full border border-[#E6DDC0]/60">
+              {transactions.length} record{transactions.length === 1 ? "" : "s"}
+            </span>
+          </div>
 
           {loading ? (
-            <div className="relative rounded-2xl border border-white/30 bg-white/10 backdrop-blur-xl shadow-[0_10px_40px_rgba(0,0,0,0.08)] overflow-hidden">
-              <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-orange-400/40 via-orange-600/70 to-orange-400/40" />
-              <div className="p-12 text-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto"></div>
-                <p className="mt-2 text-gray-600">Loading transactions...</p>
-              </div>
+            <div className="flex flex-col items-center justify-center py-16 gap-3 text-sm text-[#4C5C53]">
+              <div className="w-7 h-7 rounded-full border-2 border-[#17C97F] border-t-transparent animate-spin" />
+              <span>Loading payment history...</span>
             </div>
           ) : transactions.length === 0 ? (
-            <div className="relative rounded-2xl border border-white/30 bg-white/10 backdrop-blur-xl shadow-[0_10px_40px_rgba(0,0,0,0.08)] overflow-hidden">
-              <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-orange-400/40 via-orange-600/70 to-orange-400/40" />
-              <div className="p-12 text-center">
-                <div className="w-16 h-16 mx-auto mb-4 bg-purple-100 rounded-full flex items-center justify-center">
-                  <BsCreditCard className="w-8 h-8 text-[#B57DFF]" />
-                </div>
-                <h3 className="text-xl font-semibold text-slate-900 mb-2">No Transactions Yet</h3>
-                <p className="text-slate-600 mb-6">You haven't made any payments yet. Start by subscribing to one of our plans!</p>
-                <Link
-                  href="/#plans"
-                  className="inline-flex items-center justify-center px-6 py-3 text-white font-semibold bg-gradient-to-r from-[#B57DFF] to-[#ff8a1e] rounded-lg shadow hover:from-[#ff5a2b] hover:to-[#B57DFF] transition-all hover:scale-105"
-                >
-                  Browse Plans
-                </Link>
+            <div className="text-center py-14 text-[#4C5C53]">
+              <div className="w-14 h-14 rounded-2xl bg-[#F2EAD3] text-[#10201A] mx-auto flex items-center justify-center mb-3">
+                <CreditCard className="w-6 h-6 text-[#4C5C53]" />
               </div>
+              <h4 className="font-bold text-base text-[#10201A] mb-1">No transactions found</h4>
+              <p className="text-xs max-w-sm mx-auto mb-5">
+                You haven't made any purchases or subscriptions yet. Choose a plan to unlock full access to Kora.
+              </p>
+              <Link
+                href="/#pricing"
+                className="px-6 py-2.5 rounded-full font-bold text-xs text-[#06180F] bg-gradient-to-br from-[#17C97F] to-[#0E9C63] shadow-sm hover:-translate-y-0.5 transition-all inline-block"
+              >
+                Browse Plans
+              </Link>
             </div>
           ) : (
-            <div className="space-y-6">
-              {transactions.map((transaction: Transaction) => (
+            <div className="space-y-3">
+              {transactions.map((tx) => (
                 <div
-                  key={transaction._id}
-                  className="relative rounded-2xl border border-white/30 bg-white/10 backdrop-blur-xl shadow-[0_10px_40px_rgba(0,0,0,0.08)] overflow-hidden"
+                  key={tx._id}
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 sm:p-5 border border-[#E6DDC0] rounded-2xl bg-[#F2EAD3]/15 hover:bg-[#F2EAD3]/30 transition-colors"
                 >
-                  <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-orange-400/40 via-orange-600/70 to-orange-400/40" />
-                  <div className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4">
-                        <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
-                          <BsCreditCard className="w-6 h-6 text-[#B57DFF]" />
-                        </div>
-                        <div>
-                          <h3 className="text-lg font-semibold text-slate-900 capitalize">
-                            {transaction.plan} Plan
-                          </h3>
-                          <p className="text-sm text-slate-600">
-                            {new Date(transaction.createdAt).toLocaleDateString("en-US", {
-                              year: "numeric",
-                              month: "long",
-                              day: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                          </p>
-                        </div>
-                      </div>
-                      <div>
-                      {(transaction.cardLast4 || transaction.cardBrand) && (
-                      <div className="">
-                        <div className="flex items-center justify-between gap-5 text-md">
-                          <span>
-                            {transaction.cardBrand && (
-                              <span className="capitalize mr-2">{transaction.cardBrand}</span>
-                            )}
-                            {transaction.cardLast4 && <span>•••• {transaction.cardLast4}</span>}
-                          </span>
-                          <span className="font-mono text-xs">
-                            ID: {transaction.stripePaymentIntentId.slice(-8)}
-                          </span>
-                        </div>
-                      </div>
-                    )}
-                      </div>
-
-                      <div className="text-right">
-                        <div className="text-2xl font-bold text-slate-900">
-                          {formatAmount(transaction.amount, transaction.currency)}
-                        </div>
-                        <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(transaction.status)}`}>
-                          {getStatusIcon(transaction.status)}
-                          <span className="ml-2 capitalize">{transaction.status}</span>
-                        </div>
-                      </div>
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-11 h-11 rounded-xl bg-white border border-[#E6DDC0] flex items-center justify-center flex-shrink-0 text-base text-[#0E9C63]">
+                      <CreditCard className="w-5 h-5" />
                     </div>
+                    <div>
+                      <h4 className="font-bold text-sm text-[#10201A] capitalize">
+                        {tx.plan} Plan
+                      </h4>
+                      <p className="text-xs text-[#4C5C53] mt-0.5">
+                        {new Date(tx.createdAt).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </p>
+                    </div>
+                  </div>
 
-                   
+                  {/* Card & ID details */}
+                  {(tx.cardLast4 || tx.cardBrand || tx.stripePaymentIntentId) && (
+                    <div className="text-xs text-[#4C5C53] flex items-center gap-3">
+                      {tx.cardBrand && (
+                        <span className="capitalize font-medium">
+                          {tx.cardBrand} ending in {tx.cardLast4}
+                        </span>
+                      )}
+                      {tx.stripePaymentIntentId && (
+                        <span className="font-mono text-[10.5px] bg-white border border-[#E6DDC0] px-2 py-0.5 rounded-md">
+                          ID: {tx.stripePaymentIntentId.slice(-8)}
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Amount & Status */}
+                  <div className="flex items-center justify-between sm:justify-end gap-3 sm:text-right">
+                    <div className="font-bold text-base text-[#10201A]">
+                      {formatAmount(tx.amount, tx.currency)}
+                    </div>
+                    {getStatusBadge(tx.status)}
                   </div>
                 </div>
               ))}
             </div>
           )}
         </div>
-      </section>
+      </main>
     </div>
   );
 }

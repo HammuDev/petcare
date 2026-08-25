@@ -1,129 +1,93 @@
-import Link from 'next/link';
-import React, { useState } from 'react'
-import { useRouter } from 'next/navigation';
-import { CreditCard } from 'lucide-react';
+"use client";
 
-const ChatMenu = () => {
-    const router = useRouter();
-      const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
-      const logout = ()=>{
-        localStorage.removeItem("user_data");
-        router.push("/");
+import Link from "next/link";
+import React, { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
+
+export default function ChatMenu() {
+  const router = useRouter();
+  const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  const logout = () => {
+    localStorage.removeItem("user_data");
+    router.push("/");
+  };
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setIsMenuOpen(false);
       }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   return (
-    <div className="absolute top-0 right-0 lg:top-6 lg:right-6 z-50">
-    <div className="relative">
+    <div className="relative" ref={menuRef}>
       <button
         onClick={() => setIsMenuOpen(!isMenuOpen)}
-        className="group flex items-center space-x-3 bg-gradient-to-br from-[#B57DFF] to-[#B57DFF] backdrop-blur-md border border-white/20 rounded-xl px-2 py-2 md:px-4 md:py-3 text-white hover:bg-white/20 transition-all duration-300 hover:scale-105 hover:shadow-2xl"
+        className="inline-flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 rounded-full font-semibold text-xs sm:text-sm bg-gradient-to-br from-[#17C97F] to-[#0E9C63] text-[#06180F] shadow-[0_4px_16px_rgba(23,201,127,0.35)] hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(23,201,127,0.45)] transition-all cursor-pointer"
       >
-        <div className="p-2 m-0 lg:mr-2 rounded-lg bg-white/20 group-hover:bg-white/30 transition-all duration-300">
-          <svg
-            className="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4 6h16M4 12h16M4 18h16"
-            />
-          </svg>
-        </div>
-        <span className="text-sm hidden lg:block font-semibold tracking-wide">
-          Menu
-        </span>
+        <span>☰</span>
+        <span>Menu</span>
       </button>
 
       {isMenuOpen && (
-        <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-60">
-          {/* <Link
-            href="/"
-            className="flex items-center px-4 py-2 text-gray-800 hover:bg-gray-100 transition-colors duration-200"
-            onClick={() => setIsMenuOpen(false)}
-          >
-            <svg
-              className="w-4 h-4 mr-3"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-              />
-            </svg>
-            Home
-          </Link> */}
+        <div className="absolute right-0 top-[calc(100%+10px)] w-[220px] bg-[#0F241D] border border-[#7DE8B8]/20 rounded-2xl p-2.5 shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-50 animate-modal-in">
           <Link
             href="/profile"
-            className="flex items-center px-4 py-2 text-gray-800 hover:bg-gray-100 transition-colors duration-200"
             onClick={() => setIsMenuOpen(false)}
+            className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-[#EAF3ED] hover:bg-[#17C97F]/15 hover:text-[#7DE8B8] transition-colors"
           >
-            <svg
-              className="w-4 h-4 mr-3"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-              />
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="1.7" />
+              <path d="M4 20c1.5-4 5-6 8-6s6.5 2 8 6" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
             </svg>
             Profile
           </Link>
+
           <Link
             href="/transactions"
-            className="flex items-center px-4 py-2 text-gray-800 hover:bg-gray-100 transition-colors duration-200"
             onClick={() => setIsMenuOpen(false)}
+            className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-[#EAF3ED] hover:bg-[#17C97F]/15 hover:text-[#7DE8B8] transition-colors"
           >
-           <CreditCard className="w-4 h-4 mr-3"/>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <rect x="3" y="5" width="18" height="14" rx="3" stroke="currentColor" strokeWidth="1.7" />
+              <path d="M3 10h18" stroke="currentColor" strokeWidth="1.7" />
+            </svg>
             Transactions
           </Link>
+
           <Link
             href="/chat"
-            className="flex items-center px-4 py-2 text-gray-800 hover:bg-gray-100 transition-colors duration-200"
             onClick={() => setIsMenuOpen(false)}
+            className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-[#EAF3ED] hover:bg-[#17C97F]/15 hover:text-[#7DE8B8] transition-colors"
           >
-            <svg
-              className="w-4 h-4 mr-3"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-              />
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" stroke="currentColor" strokeWidth="1.7" />
+              <path d="M6 11a6 6 0 0 0 12 0M12 17v4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
             </svg>
-            Chat
+            Voice Chat
           </Link>
+
+          <hr className="border-0 border-t border-white/[0.08] my-1.5 mx-1" />
+
           <button
             onClick={() => {
-              // Handle logout logic here
+              setIsMenuOpen(false);
               logout();
             }}
-            className="flex items-center w-full px-4 py-2 text-gray-800 hover:bg-gray-100 transition-colors duration-200"
+            className="flex items-center gap-3 w-full px-3.5 py-2.5 rounded-xl text-sm font-medium text-[#FFA08B] hover:bg-[#FF6A4D]/15 hover:text-white transition-colors cursor-pointer text-left"
           >
-            <svg
-              className="w-4 h-4 mr-3"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
               <path
+                d="M9 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h3M16 16l4-4-4-4M20 12H9"
+                stroke="currentColor"
+                strokeWidth="1.7"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                strokeWidth={2}
-                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
               />
             </svg>
             Logout
@@ -131,8 +95,5 @@ const ChatMenu = () => {
         </div>
       )}
     </div>
-  </div>
-  )
+  );
 }
-
-export default ChatMenu

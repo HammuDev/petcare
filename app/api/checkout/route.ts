@@ -1,13 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import Stripe from "stripe";
+import { stripe } from "@/lib/stripe";
 import { connectToDatabase } from "@/lib/mongoose";
 import Transaction from "../../../models/Transaction";
 import User from "../../../models/User";
 import Subscription from "../../../models/Subscription";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-08-27.basil",
-});
 
 const PLAN_PRICES = {
   basic: 999, // $9.99

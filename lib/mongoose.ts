@@ -22,18 +22,31 @@ export async function connectToDatabase() {
   if (!cached.promise) {
     if (!MONGODB_URI) throw new Error("Missing MONGODB_URI env var");
     console.log("Connecting to database:", MONGODB_URI.replace(/\/\/.*@/, "//***:***@"));
+    
+    const opts = {
+      bufferCommands: false,
+      serverSelectionTimeoutMS: 5000,
+    };
+
     cached.promise = mongoose
-      .connect(MONGODB_URI)
-      .then((m: typeof mongoose) => {
+      .connect(MONGODB_URI, opts)
+      .then((m) => {
         console.log("Database connected successfully");
         return m;
       })
       .catch((err) => {
         console.error("Database connection failed:", err);
+        cached.promise = null;
         throw err;
       });
   }
 
-  cached.conn = await cached.promise;
+  try {
+    cached.conn = await cached.promise;
+  } catch (e) {
+    cached.promise = null;
+    throw e;
+  }
+
   return cached.conn;
 }
