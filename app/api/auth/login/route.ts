@@ -40,8 +40,19 @@ export async function POST(req: Request) {
     await setAuthCookie(token);
 
     return NextResponse.json({ id: user._id.toString(), email: user.email, name: user.name , createdAt: user.createdAt , data : user });
-  } catch (err) {
+  } catch (err: any) {
     console.error("/api/auth/login error", err);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    if (err?.name === "MongooseServerSelectionError" || err?.message?.includes("buffering timed out") || err?.message?.includes("IP")) {
+      return NextResponse.json({
+        error: "Database connection failed. Please ensure MongoDB Atlas allows connections from anywhere (0.0.0.0/0) in Network Access settings.",
+        details: err?.message,
+      }, { status: 500 });
+    }
+    if (err?.message?.includes("JWT_SECRET")) {
+      return NextResponse.json({
+        error: "JWT_SECRET is not configured in Vercel Environment Variables.",
+      }, { status: 500 });
+    }
+    return NextResponse.json({ error: err?.message || "Server error" }, { status: 500 });
   }
 }
