@@ -1,116 +1,115 @@
 "use client";
-import { useEffect, useState } from "react";
+
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { BsCreditCard, BsClock, BsCheckCircle } from "react-icons/bs";
 import { useRouter } from "next/navigation";
-import ChatMenu from "../components/chat/ChatMenu";
+import {
+  User,
+  Mail,
+  Calendar,
+  CreditCard,
+  Camera,
+  CheckCircle2,
+  Zap,
+  ShieldCheck,
+  ArrowRight,
+  LogOut,
+  Sparkles,
+} from "lucide-react";
+import VetNavHeader from "../components/common/VetNavHeader";
 import PaymentModal from "../components/home/PaymentModal";
 
-
 export default function ProfilePage() {
+  const router = useRouter();
   const [parsedUserData, setParsedUserData] = useState<any>(null);
   const [paymentMethods, setPaymentMethods] = useState<any[]>([]);
   const [loadingPaymentMethods, setLoadingPaymentMethods] = useState(false);
   const [updatingRenewal, setUpdatingRenewal] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
-  const [profileImage, setProfileImage] = useState(null);
+  const [profileImage, setProfileImage] = useState<string | null>(null);
   const [latestSubscription, setLatestSubscription] = useState<any>(null);
   const [loadingSubscription, setLoadingSubscription] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<"basic" | "premium" | "professional" | null>(null);
+  const [toastMessage, setToastMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
 
-  const router = useRouter();
+  const showToast = (text: string, type: "success" | "error" = "success") => {
+    setToastMessage({ text, type });
+    setTimeout(() => setToastMessage(null), 4000);
+  };
 
   const formatDate = (dateString: string) => {
-    if (!dateString || dateString === "Unknown") return "Unknown";
+    if (!dateString || dateString === "Unknown") return "Active Member";
     const date = new Date(dateString);
-    if (isNaN(date.getTime())) return "Unknown";
-
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const day = date.getDate().toString().padStart(2, '0');
-    const year = date.getFullYear().toString().slice(-2);
-
-    return `${month}/${day}/${year}`;
+    if (isNaN(date.getTime())) return "Active Member";
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
   };
 
   useEffect(() => {
-    // Runs only in browser
     const userData = localStorage.getItem("user_data");
     if (userData) {
       try {
         const parsed = JSON.parse(userData);
         setParsedUserData(parsed);
-
-        // Fetch payment methods and subscription if user has an ID
         if (parsed?.id) {
           fetchPaymentMethods(parsed.id);
           fetchLatestSubscription(parsed.id);
+          getProfileImage(parsed.id);
         }
       } catch (e) {
-        console.error("Failed to parse user_data from localStorage", e);
+        console.error("Failed to parse user_data:", e);
       }
-    }else{
+    } else {
       router.push("/login");
     }
-
-    
   }, []);
 
-  const getProfileImage = async()=>{
+  const getProfileImage = async (userId: string) => {
     try {
-      const response = await fetch(`/api/users/${parsedUserData.id}`);
-      const data = await response.json();
-      console.log(data);
-      if (response.ok && data.profileImage) {
+      const res = await fetch(`/api/users/${userId}`);
+      const data = await res.json();
+      if (res.ok && data.profileImage) {
         setProfileImage(data.profileImage);
       }
-    } catch (error) {
-      console.error('Error fetching profile image:', error);
+    } catch (err) {
+      console.error("Error fetching profile image:", err);
     }
-  }
-
-  useEffect(() => {
-    if(parsedUserData?.id) getProfileImage();
-  }, [parsedUserData]);
+  };
 
   const fetchLatestSubscription = async (userId: string) => {
     setLoadingSubscription(true);
     try {
-      const response = await fetch(`/api/latest-subscription?userId=${userId}`);
-      const data = await response.json();
-      
-      if (response.ok && data.subscription) {
+      const res = await fetch(`/api/latest-subscription?userId=${userId}`);
+      const data = await res.json();
+      if (res.ok && data.subscription) {
         setLatestSubscription(data.subscription);
       }
-    } catch (error) {
-      console.error('Error fetching latest subscription:', error);
+    } catch (err) {
+      console.error("Error fetching latest subscription:", err);
     } finally {
       setLoadingSubscription(false);
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem("user_data");
-    router.push("/");
-  };
-
   const fetchPaymentMethods = async (userId: string) => {
     if (!userId) return;
-
     setLoadingPaymentMethods(true);
     try {
-      const response = await fetch("/api/get-payment-methods", {
+      const res = await fetch("/api/get-payment-methods", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId }),
       });
-
-      const data = await response.json();
+      const data = await res.json();
       if (data.paymentMethods) {
         setPaymentMethods(data.paymentMethods);
       }
-    } catch (error) {
-      console.error("Failed to fetch payment methods:", error);
+    } catch (err) {
+      console.error("Failed to fetch payment methods:", err);
     } finally {
       setLoadingPaymentMethods(false);
     }
@@ -126,28 +125,27 @@ export default function ProfilePage() {
       formData.append("image", file);
       formData.append("userId", parsedUserData.id);
 
-      const response = await fetch("/api/profile/upload-image", {
+      const res = await fetch("/api/profile/upload-image", {
         method: "POST",
         body: formData,
       });
+      const data = await res.json();
 
-      const data = await response.json();
-
-      if (response.ok) {
-        // Update localStorage data
-        const updatedUserData = {
+      if (res.ok && data.imageUrl) {
+        const updated = {
           ...parsedUserData,
           profileImage: data.imageUrl,
         };
-        setParsedUserData(updatedUserData);
-        localStorage.setItem("user_data", JSON.stringify(updatedUserData));
+        setParsedUserData(updated);
+        setProfileImage(data.imageUrl);
+        localStorage.setItem("user_data", JSON.stringify(updated));
+        showToast("Profile image updated successfully!");
       } else {
-        console.error("Failed to upload image:", data.error);
-        alert("Failed to upload image. Please try again.");
+        showToast(data.error || "Failed to upload image.", "error");
       }
-    } catch (error) {
-      console.error("Error uploading image:", error);
-      alert("Error uploading image. Please try again.");
+    } catch (err) {
+      console.error("Error uploading image:", err);
+      showToast("Error uploading image.", "error");
     } finally {
       setUploadingImage(false);
     }
@@ -158,386 +156,363 @@ export default function ProfilePage() {
 
     setUpdatingRenewal(true);
     try {
-      const response = await fetch("/api/update-renewal", {
+      const res = await fetch("/api/update-renewal", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId: parsedUserData.id,
-          renew: renew
+          renew,
         }),
       });
 
-      if (response.ok) {
-        // Update localStorage data
-        const updatedUserData = {
+      if (res.ok) {
+        const updated = {
           ...parsedUserData,
           data: {
             ...parsedUserData.data,
-            renew: renew
-          }
+            renew,
+          },
         };
-        setParsedUserData(updatedUserData);
-        localStorage.setItem("user_data", JSON.stringify(updatedUserData));
+        setParsedUserData(updated);
+        localStorage.setItem("user_data", JSON.stringify(updated));
+        showToast(renew ? "Auto-renewal enabled." : "Auto-renewal turned off.");
       } else {
-        console.error("Failed to update renewal setting");
+        showToast("Failed to update renewal setting.", "error");
       }
-    } catch (error) {
-      console.error("Error updating renewal setting:", error);
+    } catch (err) {
+      console.error("Error updating renewal:", err);
+      showToast("Error updating renewal.", "error");
     } finally {
       setUpdatingRenewal(false);
     }
   };
 
-   const openModal = (plan: "basic" | "premium" | "professional") => {
+  const openUpgradeModal = (plan: "basic" | "premium" | "professional") => {
     setSelectedPlan(plan);
     setIsModalOpen(true);
   };
-  const onPaymentSuccess = () => {
-    setIsModalOpen(false);
-    router.refresh();
+
+  const handleLogout = () => {
+    localStorage.removeItem("user_data");
+    router.push("/");
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-50">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-r from-[#ff4d2d] to-[#ff7a18]">
-        <div className="absolute inset-0 bg-[url('/lady.png')] bg-no-repeat bg-bottom-right bg-auto lg:bg-contain" />
-        <div className="absolute inset-0 bg-black/20" />
-        <ChatMenu/>
+    <div className="min-h-screen bg-[#FBF7EC] text-[#10201A]">
+      <VetNavHeader />
 
-        {/* Back Button */}
-        {/* <div className="absolute top-6 left-6 z-50">
-          <Link
-            href="/"
-            className="group flex items-center space-x-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl px-4 py-3 text-white hover:bg-white/20 transition-all duration-300 hover:scale-105 hover:shadow-2xl"
-          >
-            <div className="p-2 rounded-lg bg-white/20 group-hover:bg-white/30 transition-all duration-300 group-hover:rotate-12">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
+      {/* Hero Banner */}
+      <section className="relative overflow-hidden bg-[radial-gradient(120%_120%_at_50%_-10%,#16332A_0%,#0A1512_65%)] text-white pt-14 pb-16 px-4 sm:px-8 text-center">
+        <div className="absolute w-[460px] h-[460px] rounded-full bg-[#17C97F] opacity-20 -top-32 -left-20 blur-[90px] pointer-events-none animate-drift1" />
+        <div className="absolute w-[360px] h-[360px] rounded-full bg-[#FF6A4D] opacity-[0.15] -bottom-32 -right-20 blur-[90px] pointer-events-none animate-drift2" />
+
+        <div className="relative z-10 max-w-[640px] mx-auto">
+          {/* Avatar with Camera Icon Badge */}
+          <div className="relative w-28 h-28 rounded-full mx-auto mb-4 bg-gradient-to-br from-[#17C97F] to-[#0E9C63] text-[#06180F] font-bold text-3xl flex items-center justify-center shadow-[0_16px_40px_-12px_rgba(23,201,127,0.45),0_0_0_6px_rgba(23,201,127,0.15)] overflow-hidden border-2 border-white/20">
+            {profileImage ? (
+              <img
+                src={profileImage}
+                alt={parsedUserData?.name || "User"}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <span>{parsedUserData?.name ? parsedUserData.name.charAt(0).toUpperCase() : "U"}</span>
+            )}
+
+            {uploadingImage && (
+              <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              </div>
+            )}
+          </div>
+
+          <div className="flex justify-center mb-3">
+            <label className="inline-flex items-center gap-1.5 px-3.5 py-1 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-xs font-semibold text-[#EAF3ED] cursor-pointer transition-colors">
+              <Camera className="w-3.5 h-3.5 text-[#17C97F]" />
+              <span>Change Photo</span>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                disabled={uploadingImage}
+                className="hidden"
+              />
+            </label>
+          </div>
+
+          <h1 className="text-3xl sm:text-4xl font-display font-extrabold text-white mb-2 tracking-tight">
+            Welcome back, {parsedUserData?.name || "Pet Parent"}!
+          </h1>
+          <p className="text-[#9AB0A5] text-sm sm:text-base">
+            Manage your Vet365 account, talk minutes, and billing preferences.
+          </p>
+        </div>
+      </section>
+
+      {/* Main Profile Dashboard */}
+      <main className="max-w-[1140px] mx-auto px-4 sm:px-8 -mt-8 pb-20 relative z-20">
+        <div className="grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-6 items-start">
+          {/* Left Column: Account Information & Payment Methods */}
+          <div className="space-y-6">
+            {/* Account Info Card */}
+            <div className="bg-white border border-[#E6DDC0] rounded-3xl p-6 sm:p-7 shadow-xs">
+              <h3 className="text-lg font-bold text-[#10201A] mb-5 flex items-center gap-2">
+                <User className="w-5 h-5 text-[#0E9C63]" />
+                <span>Account Information</span>
+              </h3>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-[#4C5C53] mb-1.5 uppercase tracking-wider">
+                    Full Name
+                  </label>
+                  <div className="px-4 py-3 rounded-xl border border-[#E6DDC0] bg-[#F2EAD3]/30 font-semibold text-sm text-[#10201A]">
+                    {parsedUserData?.name || "Pet Parent"}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#4C5C53] mb-1.5 uppercase tracking-wider">
+                    Email Address
+                  </label>
+                  <div className="px-4 py-3 rounded-xl border border-[#E6DDC0] bg-[#F2EAD3]/30 font-semibold text-sm text-[#10201A] truncate">
+                    {parsedUserData?.email || "Not set"}
+                  </div>
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-semibold text-[#4C5C53] mb-1.5 uppercase tracking-wider">
+                    Membership Status
+                  </label>
+                  <div className="px-4 py-3 rounded-xl border border-[#E6DDC0] bg-[#F2EAD3]/30 font-semibold text-sm text-[#10201A] flex items-center justify-between">
+                    <span>{formatDate(parsedUserData?.createdAt)}</span>
+                    <span className="inline-flex items-center gap-1 text-xs text-[#0E9C63] font-bold bg-[#DDF7E9] px-2.5 py-0.5 rounded-full">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>Active</span>
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
-            <span className="text-sm font-semibold tracking-wide">Back to Home</span>
-          </Link>
-        </div> */}
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
-          <div className="text-center">
-            {/* Avatar */}
-            <div className="relative inline-block mb-8">
-              <div className="w-32 h-32 rounded-full bg-white/20 backdrop-blur-xl border-4 border-white/30 flex items-center justify-center text-6xl font-bold text-white shadow-2xl overflow-hidden">
-                {profileImage ? (
-                  <img
-                    src={profileImage}
-                    alt={`${parsedUserData.name || "User"}'s profile`}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  parsedUserData?.name ? parsedUserData.name.charAt(0).toUpperCase() : "U"
+            {/* Payment Methods Card */}
+            <div className="bg-white border border-[#E6DDC0] rounded-3xl p-6 sm:p-7 shadow-xs">
+              <div className="flex items-center justify-between mb-5">
+                <h3 className="text-lg font-bold text-[#10201A] flex items-center gap-2">
+                  <CreditCard className="w-5 h-5 text-[#0E9C63]" />
+                  <span>Saved Payment Methods</span>
+                </h3>
+                <Link
+                  href="/transactions"
+                  className="text-xs font-bold text-[#0E9C63] hover:underline flex items-center gap-1"
+                >
+                  <span>Billing History</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+
+              {loadingPaymentMethods ? (
+                <div className="flex items-center justify-center py-8 text-xs text-[#4C5C53] gap-2">
+                  <div className="w-5 h-5 rounded-full border-2 border-[#17C97F] border-t-transparent animate-spin" />
+                  <span>Loading payment methods...</span>
+                </div>
+              ) : paymentMethods.length > 0 ? (
+                <div className="space-y-3">
+                  {paymentMethods.map((pm) => (
+                    <div
+                      key={pm.id}
+                      className="flex items-center justify-between gap-3 p-4 border border-[#E6DDC0] rounded-2xl bg-[#F2EAD3]/20"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-white border border-[#E6DDC0] flex items-center justify-center flex-shrink-0 text-base text-[#10201A]">
+                          <CreditCard className="w-5 h-5 text-[#0E9C63]" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-[#10201A] capitalize">
+                            {pm.card?.brand} ending in {pm.card?.last4}
+                          </p>
+                          <p className="text-xs text-[#4C5C53]">
+                            Expires {pm.card?.exp_month}/{pm.card?.exp_year}
+                          </p>
+                        </div>
+                      </div>
+                      <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#0E9C63] bg-[#DDF7E9] px-3 py-1 rounded-full">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span>Default</span>
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-xs text-[#4C5C53]">
+                  <div className="w-12 h-12 rounded-full bg-[#F2EAD3] text-[#4C5C53] mx-auto flex items-center justify-center text-xl mb-2">
+                    <CreditCard className="w-5 h-5 text-[#4C5C53]" />
+                  </div>
+                  <p className="font-bold text-sm text-[#10201A] mb-1">No payment cards stored</p>
+                  <p>Cards are saved automatically after your first subscription or minute purchase.</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Right Column: Stats, Subscription, Actions */}
+          <div className="space-y-6">
+            {/* Talk Time & Account Stats */}
+            <div className="bg-white border border-[#E6DDC0] rounded-3xl p-6 shadow-xs">
+              <h3 className="text-base font-bold text-[#10201A] mb-4 flex items-center gap-2">
+                <Zap className="w-4 h-4 text-[#0E9C63]" />
+                <span>Talk Time Balance</span>
+              </h3>
+
+              <div className="space-y-3">
+                <div className="flex items-center gap-3.5 p-4 rounded-2xl bg-gradient-to-br from-[#EAF8F1] to-[#DDF7E9] border border-[#17C97F]/30">
+                  <div className="w-10 h-10 rounded-xl bg-white text-[#0E9C63] flex items-center justify-center text-lg flex-shrink-0 shadow-xs">
+                    🎙️
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-extrabold text-2xl text-[#06180F] tracking-tight">
+                      {parsedUserData?.data?.total_time || parsedUserData?.total_time || 0} mins
+                    </p>
+                    <p className="text-xs text-[#0E9C63] font-semibold">Available for AI voice consults</p>
+                  </div>
+                  <Link
+                    href="/transactions"
+                    className="px-3.5 py-1.5 bg-[#0E9C63] text-white rounded-full text-xs font-bold shadow-xs hover:bg-[#17C97F] hover:text-[#06180F] transition-colors"
+                  >
+                    + Top Up
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+            {/* Subscription & Auto-renewal Details */}
+            <div className="bg-white border border-[#E6DDC0] rounded-3xl p-6 shadow-xs">
+              <h3 className="text-base font-bold text-[#10201A] mb-4 flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-[#0E9C63]" />
+                <span>Subscription Details</span>
+              </h3>
+
+              <div className="space-y-4">
+                {/* Auto-renewal Switch */}
+                <div className="flex items-center justify-between gap-3 p-3.5 rounded-2xl bg-[#F2EAD3]/30 border border-[#E6DDC0]">
+                  <div>
+                    <p className="text-sm font-bold text-[#10201A]">Monthly Auto-Renewal</p>
+                    <p className="text-xs text-[#4C5C53]">
+                      {parsedUserData?.data?.renew !== false
+                        ? "Renews automatically every 30 days"
+                        : "Manual renewal only"}
+                    </p>
+                  </div>
+
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={parsedUserData?.data?.renew !== false}
+                      onChange={() => updateRenewalSetting(parsedUserData?.data?.renew === false)}
+                      disabled={updatingRenewal}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-[#E6DDC0] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-br peer-checked:from-[#17C97F] peer-checked:to-[#0E9C63]" />
+                  </label>
+                </div>
+
+                {latestSubscription && (
+                  <div className="p-3.5 rounded-2xl border border-[#17C97F]/30 bg-[#EAF8F1] flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-bold text-[#06180F] capitalize">
+                        {latestSubscription.plan === "basic" ? "Basic Plan" : "Pawblem Solver Pro"}
+                      </p>
+                      <p className="text-xs text-[#0E9C63]">
+                        {formatDate(latestSubscription.createdAt)}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-bold text-[#06180F]">
+                        ${(latestSubscription.amount / 100).toFixed(2)}
+                      </p>
+                      <p className="text-[11px] text-[#4C5C53]">
+                        {latestSubscription.plan === "basic" ? "10 min pack" : "20 min/mo"}
+                      </p>
+                    </div>
+                  </div>
                 )}
               </div>
-              <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-white border-4 border-white shadow-lg flex items-center justify-center">
-                <label className="cursor-pointer">
-                  <svg className="w-4 h-4 text-orange-600" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                  </svg>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="hidden"
-                    disabled={uploadingImage}
-                  />
-                </label>
-              </div>
-              {uploadingImage && (
-                <div className="absolute inset-0 w-32 h-32 rounded-full bg-black/50 flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+
+              {/* Upgrade Trigger if on basic */}
+              {(!latestSubscription || latestSubscription.plan === "basic") && (
+                <div className="mt-4 pt-4 border-t border-[#E6DDC0]">
+                  <p className="text-xs font-mono font-bold text-[#FF6A4D] uppercase tracking-wider mb-1">
+                    Upgrade &amp; Save
+                  </p>
+                  <h4 className="text-sm font-bold text-[#10201A] mb-1">Pawblem Solver Pro</h4>
+                  <p className="text-xs text-[#4C5C53] mb-3">
+                    20 vet-trained minutes every month + rollover unused minutes.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => openUpgradeModal("premium")}
+                    className="w-full py-2.5 rounded-full font-bold text-xs text-white bg-gradient-to-br from-[#FF6A4D] to-[#E24E30] shadow-[0_4px_16px_rgba(255,106,77,0.35)] hover:-translate-y-0.5 transition-all cursor-pointer"
+                  >
+                    Upgrade to Pro ($14.99/mo)
+                  </button>
                 </div>
               )}
             </div>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white mb-4">
-              Welcome back, {parsedUserData?.name || "Pet Lover"}!
-            </h1>
-            <p className="text-xl text-white/90 max-w-2xl mx-auto">
-              Manage your account and discover personalized pet care experiences
-            </p>
-          </div>
-        </div>
+            {/* Quick Actions Card */}
+            <div className="bg-white border border-[#E6DDC0] rounded-3xl p-6 shadow-xs space-y-3">
+              <h3 className="text-base font-bold text-[#10201A] mb-2">Account Actions</h3>
 
-        <div className="absolute -bottom-8 left-0 right-0 h-16 bg-gradient-to-b from-transparent to-white" />
-      </section>
+              <Link
+                href="/transactions"
+                className="w-full py-3 rounded-full font-bold text-xs text-center block text-[#10201A] bg-[#F2EAD3] hover:bg-[#E6DDC0] transition-colors"
+              >
+                View Transaction Receipts
+              </Link>
 
-      {/* Main Content */}
-      <section className="relative -mt-16 pb-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Profile Info */}
-            <div className="lg:col-span-2 space-y-8">
-              <div className="relative rounded-2xl border border-white/30 bg-white/10 backdrop-blur-xl shadow overflow-hidden">
-                <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-orange-400/40 via-orange-600/70 to-orange-400/40" />
-                <div className="p-8">
-                  <h2 className="text-2xl font-bold text-slate-900 mb-6">Account Information</h2>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-slate-600">Full Name</label>
-                      <div className="text-lg font-semibold text-slate-900 bg-slate-50 rounded-lg px-4 py-3 border border-slate-200">
-                        {parsedUserData?.name || "Not set"}
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-slate-600">Email Address</label>
-                      <div className="text-lg font-semibold text-slate-900 bg-slate-50 rounded-lg px-4 py-3 border border-slate-200">
-                        {parsedUserData?.email || "Not set"}
-                      </div>
-                    </div>
-
-                    <div className="space-y-2 md:col-span-2">
-                      <label className="text-sm font-medium text-slate-600">Member Since</label>
-                      <div className="text-lg font-semibold text-slate-900 bg-slate-50 rounded-lg px-4 py-3 border border-slate-200">
-                        {formatDate(parsedUserData?.createdAt) || formatDate(new Date().toISOString())}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Payment Methods Section */}
-              <div className="relative rounded-2xl border border-white/30 bg-white/10 backdrop-blur-xl shadow overflow-hidden">
-                <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-orange-400/40 via-orange-600/70 to-orange-400/40" />
-                <div className="p-8">
-                  <h2 className="text-2xl font-bold text-slate-900 mb-6">Payment Methods</h2>
-
-                  {loadingPaymentMethods ? (
-                    <div className="flex items-center justify-center py-8">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
-                      <span className="ml-3 text-slate-600">Loading payment methods...</span>
-                    </div>
-                  ) : paymentMethods.length > 0 ? (
-                    <div className="space-y-4">
-                      {paymentMethods.map((pm) => (
-                        <div key={pm.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
-                          <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
-                              <BsCreditCard className="w-5 h-5 text-orange-600" />
-                            </div>
-                            <div>
-                              <p className="font-medium text-slate-900 capitalize">
-                                {pm.card.brand} ending in {pm.card.last4}
-                              </p>
-                              <p className="text-sm text-slate-600">
-                                Expires {pm.card.exp_month}/{pm.card.exp_year}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex items-center">
-                            <BsCheckCircle className="w-5 h-5 text-green-500" />
-                            <span className="ml-2 text-sm font-medium text-green-600">Default</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8">
-                      <BsCreditCard className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-                      <p className="text-slate-600 mb-2">No payment methods found</p>
-                      <p className="text-sm text-slate-500">
-                        Payment methods will appear here after making a purchase
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Sidebar */}
-            <div className="space-y-8">
-              {/* Stats */}
-              <div className="relative rounded-2xl border border-white/30 bg-white/10 backdrop-blur-xl shadow overflow-hidden">
-                <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-orange-400/40 via-orange-600/70 to-orange-400/40" />
-                <div className="p-6">
-                  <h3 className="text-lg font-semibold text-slate-900 mb-4">Account Stats</h3>
-
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between p-3 bg-gradient-to-r from-orange-50 to-orange-100 rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
-                          <svg className="w-5 h-5 text-orange-600" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                          </svg>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-slate-900">Profile Complete</p>
-                          <p className="text-xs text-slate-600">100%</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between p-3 bg-gradient-to-r from-orange-50 to-orange-100 rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
-                          <svg className="w-5 h-5 text-orange-600" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
-                          </svg>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-slate-900">Member Since</p>
-                          <p className="text-xs text-slate-600">{formatDate(parsedUserData?.createdAt) || "Unknown"}</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Subscription Settings */}
-              <div className="relative rounded-2xl border border-white/30 bg-white/10 backdrop-blur-xl shadow overflow-hidden">
-                <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-orange-400/40 via-orange-600/70 to-orange-400/40" />
-                <div className="p-6">
-                  <h3 className="text-lg font-semibold text-slate-900 mb-4">Subscription Details</h3>
-
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between p-3 bg-gradient-to-r from-orange-50 to-orange-100 m-0">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
-                          <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                          </svg>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-slate-900">Monthly Renewal</p>
-                          <p className="text-xs text-slate-600">
-                            {parsedUserData?.data?.renew !== false ? "Automatically renew subscription" : "Manual renewal only"}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center">
-                        <button
-                          onClick={() => updateRenewalSetting(!parsedUserData?.data?.renew)}
-                          disabled={updatingRenewal}
-                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 ${
-                            parsedUserData?.data?.renew !== false
-                              ? "bg-orange-500"
-                              : "bg-gray-200"
-                          } ${updatingRenewal ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
-                        >
-                          <span
-                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                              parsedUserData?.data?.renew !== false
-                                ? "translate-x-6"
-                                : "translate-x-1"
-                            }`}
-                          />
-                        </button>
-                        {updatingRenewal && (
-                          <div className="ml-2 animate-spin rounded-full h-4 w-4 border-b-2 border-orange-500"></div>
-                        )}
-                      </div>
-                    </div>
-
-                    {latestSubscription && (
-                      <div className="flex items-center justify-between p-3 bg-gradient-to-r from-orange-50 to-orange-100">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
-                            <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-slate-900">
-                              {latestSubscription.plan === "basic" ? "Basic Plan" : "Premium Plan"}
-                            </p>
-                            <p className="text-xs text-slate-600">
-                              {formatDate(latestSubscription.createdAt)}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-sm font-medium text-slate-900">
-                            ${(latestSubscription.amount / 100).toFixed(2)}
-                            <br />
-                            <p className="text-xs text-slate-600">
-                              {latestSubscription.plan === "basic" ? "30 Minutes Talk Time" : "90 Minutes Talk Time"}
-                            </p>
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                    
-                  </div>
-                </div>
-              </div>
-              {
-              latestSubscription && latestSubscription.plan === "basic" && (
-                 <div className="relative rounded-2xl border border-white/30 bg-white/10 backdrop-blur-xl shadow overflow-hidden">
-                <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-orange-400/40 via-orange-600/70 to-orange-400/40" />
-                <div className="p-6">
-                  <h3 className="text-2xl font-semibold text-slate-900 mb-4">Upgrade Your Account</h3>
-                  <div>
-                    <p className="text-lg font-bold text-slate-900 mb-2">Primium Plan</p>
-                    <p className="text-md text-slate-600 ">$0.22 cents per minute</p>
-                    <p className="text-md text-slate-600">90 Minutes Talk Time</p>
-                    <button className="w-full mt-2 flex items-center justify-center px-4 py-3 text-lg font-medium text-white bg-gradient-to-r from-[#ff6a3d] to-[#ff8a1e] rounded-lg shadow hover:from-[#ff5a2b] hover:to-[#ff7a18] transition-all duration-200 transform hover:scale-105 cursor-pointer" onClick={() => openModal("premium")}>Upgrade Now</button>
-                  </div>
-                </div>
-              </div>
-               )
-              }
-             
-
-              {/* Account Actions */}
-              <div className="relative rounded-2xl border border-white/30 bg-white/10 backdrop-blur-xl shadow overflow-hidden">
-                <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-orange-400/40 via-orange-600/70 to-orange-400/40" />
-                <div className="p-6">
-                  <h3 className="text-lg font-semibold text-slate-900 mb-4">Account Actions</h3>
-
-                  <div className="space-y-3">
-                  {latestSubscription ? (
-    // If latestSubscription is truthy (your original 'if' block)
-    <Link
-        href="/transactions"
-        className="w-full flex items-center justify-center px-4 py-3 text-sm font-medium text-white bg-gradient-to-r from-[#ff6a3d] to-[#ff8a1e] rounded-lg shadow hover:from-[#ff5a2b] hover:to-[#ff7a18] transition-all duration-200 transform hover:scale-105"
-    >
-        <BsCreditCard className="w-4 h-4 mr-2" />
-        View Transactions
-    </Link>
-) : (
-    // If latestSubscription is falsy (your 'else' block)
-    <Link
-        href="/#plans"
-        className="w-full flex items-center justify-center px-4 py-3 text-sm font-medium text-white bg-gradient-to-r from-[#ff6a3d] to-[#ff8a1e] rounded-lg shadow hover:from-[#ff5a2b] hover:to-[#ff7a18] transition-all duration-200 transform hover:scale-105"
-    >
-        <BsCreditCard className="w-4 h-4 mr-2" />
-        Buy a Plan Now
-    </Link>
-)}
-                    {/* <form action="/api/auth/logout" method="post" className="w-full"> */}
-                      <button
-                        onClick={logout}
-                        className="w-full flex items-center justify-center px-4 py-3 text-sm font-medium text-white bg-gradient-to-r from-red-500 to-red-600 rounded-lg shadow hover:from-red-600 hover:to-red-700 transition-all duration-200 transform hover:scale-105"
-                      >
-                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                        </svg>
-                        Sign Out
-                      </button>
-                    {/* </form> */}
-                  </div>
-                </div>
-              </div>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="w-full py-3 rounded-full font-bold text-xs text-white bg-gradient-to-br from-[#FF6A4D] to-[#D63A1F] shadow-[0_4px_14px_rgba(255,106,77,0.3)] hover:-translate-y-0.5 transition-all cursor-pointer flex items-center justify-center gap-2"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                <span>Sign Out</span>
+              </button>
             </div>
           </div>
         </div>
-      </section>
-      <PaymentModal
-              isOpen={isModalOpen}
-              onClose={() => setIsModalOpen(false)}
-              plan={selectedPlan}
-              userId={parsedUserData?.id}
-              onPaymentSuccess={onPaymentSuccess}
-            />
+      </main>
+
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed top-6 right-6 z-[900] flex items-center gap-3 bg-[#0F241D] border border-[#7DE8B8]/30 rounded-2xl px-4 py-3 text-white text-xs sm:text-sm font-medium shadow-2xl animate-toast-in">
+          <span className="w-5 h-5 rounded-full bg-[#17C97F]/20 flex items-center justify-center text-[#17C97F]">
+            {toastMessage.type === "success" ? "✓" : "!"}
+          </span>
+          <span>{toastMessage.text}</span>
+          <button
+            onClick={() => setToastMessage(null)}
+            className="text-gray-400 hover:text-white ml-2 text-sm"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
+      {/* Stripe Payment Modal */}
+      {isModalOpen && (
+        <PaymentModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          plan={selectedPlan || "premium"}
+          userId={parsedUserData?.id || ""}
+          onPaymentSuccess={() => {
+            setIsModalOpen(false);
+            showToast("Plan updated successfully!");
+            if (parsedUserData?.id) fetchLatestSubscription(parsedUserData.id);
+          }}
+        />
+      )}
     </div>
   );
 }

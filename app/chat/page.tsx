@@ -1,118 +1,56 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import ChatLayout from "../components/layout/ChatLayout";
-import VoiceChat from "../components/chat/VoiceChat";
-// import Link from "next/link";
 import { useRouter } from "next/navigation";
-import ChatMenu from "../components/chat/ChatMenu";
-// import { getCurrentUserId } from "../../lib/auth";
+import VetChatLayout from "../components/layout/VetChatLayout";
+import VetVoiceChat from "../components/chat/VetVoiceChat";
 
-interface Message {
-  role: "user" | "assistant";
-  content: string;
-  timestamp: Date;
-}
-
-interface ChatHistory {
-  messages: Message[];
-  chatId?: string;
-  sessionId: string;
-}
-
-const page = () => {
+export default function ChatPage() {
   const router = useRouter();
   const [sessionId, setSessionId] = useState<string>("");
-  const [chatHistory, setChatHistory] = useState<Message[]>([]);
-  const [error, setError] = useState("");
-  // const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
   const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    initializeChatSession();
-    // initializeUserId();
-    const user_data = localStorage.getItem("user_data");
-    if (user_data) {
-      const userData = JSON.parse(user_data);
-      console.log("Setting userId from localStorage:", userData.id); // Debug log
-      setUserId(userData.id);
+    initializeSession();
+    const stored = localStorage.getItem("user_data");
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        setUserId(parsed.id);
+      } catch (e) {
+        console.error("Failed to parse user_data:", e);
+      }
     } else {
       router.push("/login");
-      console.log("No user_data found in localStorage"); // Debug log
     }
   }, []);
 
-  const generateNewSessionId = () => {
-    return (
-      "session_" + Date.now() + "_" + Math.random().toString(36).substr(2, 9)
-    );
+  const generateSessionId = () => {
+    return "session_" + Date.now() + "_" + Math.random().toString(36).substring(2, 9);
   };
 
-  // const initializeUserId = async () => {
-  //   try {
-  //     const currentUserId = await ;
-  //     setUserId(currentUserId);
-  //   } catch (err) {
-  //     console.error("Failed to get user ID:", err);
-  //   }
-  // };
-
-  
-  const initializeChatSession = async () => {
+  const initializeSession = () => {
     if (typeof window === "undefined") return;
-
-    try {
-      // Always generate a new unique session ID for each chat session
-      const currentSessionId = generateNewSessionId();
-      setSessionId(currentSessionId);
-    } catch (err) {
-      console.error("Failed to initialize chat session:", err);
-      setError(err instanceof Error ? err.message : String(err));
-    }
+    setSessionId(generateSessionId());
   };
 
-  const handleNewChatSession = () => {
-    // Generate a new session ID when user wants to start a fresh chat
-    const newSessionId = generateNewSessionId();
-    setSessionId(newSessionId);
-    setChatHistory([]); // Clear chat history for new session
+  const handleNewChat = () => {
+    setSessionId(generateSessionId());
   };
 
   return (
-    <ChatLayout onNewChat={handleNewChatSession} userId={userId || undefined}>
-      <div className="flex-1 flex flex-col items-center justify-center p-4 md:p-8">
-        <div className="text-center mb-8 max-w-2xl mx-auto">
-          <div className="mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-[#ff4d2d] to-[#ff7a18] bg-clip-text text-transparent mb-4">
-                  Voice Chat Assistant
-                </h1>
-                <p className="text-gray-600 text-lg mb-8 max-w-md mx-auto">
-                  Speak
-                  naturally and I'll help you with your pet care questions.
-                </p>
-              </div>
-            </div>
-            <ChatMenu />
-          </div>
+    <VetChatLayout onNewChat={handleNewChat} userId={userId || undefined}>
+      <div className="flex-1 bg-[#F2EAD3]/35 flex items-center justify-center p-4 sm:p-8 relative overflow-y-auto min-h-0 custom-scroll">
+        {/* Background glow blobs */}
+        <div className="absolute w-[420px] h-[420px] rounded-full blur-[90px] bg-[#17C97F] opacity-[0.14] -top-[140px] -right-[100px] pointer-events-none animate-drift1" />
+        <div className="absolute w-[340px] h-[340px] rounded-full blur-[80px] bg-[#FF6A4D] opacity-[0.12] -bottom-[140px] -left-[80px] pointer-events-none animate-drift2" />
 
-          <div className="mb-8 max-w-md mx-auto">
-            <VoiceChat
-              sessionId={sessionId}
-              userId={userId || undefined}
-              onMessage={(message) => {
-                setChatHistory((prev) => [...prev, message]);
-              }}
-              onError={(error) => {
-                setError(error);
-              }}
-            />
-          </div>
-        </div>
+        {/* Voice Chat Component */}
+        <VetVoiceChat
+          sessionId={sessionId}
+          userId={userId || undefined}
+        />
       </div>
-    </ChatLayout>
+    </VetChatLayout>
   );
-};
-
-export default page;
+}

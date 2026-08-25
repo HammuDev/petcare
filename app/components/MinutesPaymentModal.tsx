@@ -1,17 +1,11 @@
 "use client";
-import Swal from 'sweetalert2';
-import { useState, useEffect, useMemo } from "react";
-import { loadStripe, StripeElementsOptions } from "@stripe/stripe-js";
-import {
-  Elements,
-  CardElement,
-  useStripe,
-  useElements,
-} from "@stripe/react-stripe-js";
-import { useRouter } from "next/navigation";
-import { BsClock, BsX } from "react-icons/bs";
 
-// Initialize Stripe
+import React, { useState, useEffect, useMemo } from "react";
+import { loadStripe, StripeElementsOptions } from "@stripe/stripe-js";
+import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
+import { useRouter } from "next/navigation";
+import Swal from "sweetalert2";
+
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
 interface MinutesPaymentModalProps {
@@ -28,10 +22,10 @@ const MINUTES_PACKAGES = {
   "60": { minutes: 60, price: "$14.99", description: "Best value for comprehensive care" },
 };
 
-const CardForm = ({ 
-  minutes, 
-  userId, 
-  onClose, 
+const CardForm = ({
+  minutes,
+  userId,
+  onClose,
   clientSecret,
   onPaymentSuccess,
   paymentMethods,
@@ -39,10 +33,10 @@ const CardForm = ({
   setUseNewCard,
   selectedPaymentMethod,
   setSelectedPaymentMethod,
-}: { 
-  minutes: string; 
-  userId: string; 
-  onClose: () => void; 
+}: {
+  minutes: string;
+  userId: string;
+  onClose: () => void;
   clientSecret: string;
   onPaymentSuccess?: () => void;
   paymentMethods: any[];
@@ -66,16 +60,9 @@ const CardForm = ({
       return;
     }
 
-    // Validate based on payment method choice
     if (useNewCard) {
       if (!elements || !cardholderName.trim()) {
-        setError("Please fill in all fields");
-        return;
-      }
-
-      const cardElement = elements.getElement(CardElement);
-      if (!cardElement) {
-        setError("Card element not found");
+        setError("Please enter the cardholder name");
         return;
       }
     } else {
@@ -92,9 +79,7 @@ const CardForm = ({
       let paymentIntent;
 
       if (useNewCard) {
-        // Confirm the payment intent with new card element
         const cardElement = elements?.getElement(CardElement);
-
         if (!cardElement) {
           setError("Card element not found");
           return;
@@ -102,7 +87,7 @@ const CardForm = ({
 
         const { error: confirmError, paymentIntent: pi } = await stripe.confirmCardPayment(clientSecret, {
           payment_method: {
-            card: cardElement!,
+            card: cardElement,
             billing_details: {
               name: cardholderName,
             },
@@ -110,20 +95,11 @@ const CardForm = ({
         });
 
         if (confirmError) {
-          console.error("Stripe confirmation error:", confirmError);
           setError(confirmError.message || "Payment confirmation failed");
           return;
         }
-
-        console.log("Payment confirmation successful:", {
-          paymentIntentId: pi?.id,
-          status: pi?.status,
-          paymentMethod: pi?.payment_method,
-        });
-
         paymentIntent = pi;
       } else {
-        // Confirm the payment intent with saved payment method
         const { error: confirmError, paymentIntent: pi } = await stripe.confirmCardPayment(clientSecret, {
           payment_method: selectedPaymentMethod,
         });
@@ -132,12 +108,10 @@ const CardForm = ({
           setError(confirmError.message || "Payment confirmation failed");
           return;
         }
-
         paymentIntent = pi;
       }
 
       if (paymentIntent && paymentIntent.status === "succeeded") {
-        // Process the successful payment
         const response = await fetch("/api/purchase-minutes", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -155,7 +129,6 @@ const CardForm = ({
         }
 
         if (data.success) {
-          // Update localStorage with new minutes
           const currentUserData = localStorage.getItem("user_data");
           if (currentUserData) {
             try {
@@ -164,21 +137,17 @@ const CardForm = ({
                 userData.data.total_time = (userData.data.total_time || 0) + parseInt(minutes);
                 localStorage.setItem("user_data", JSON.stringify(userData));
               }
-            } catch (error) {
-              console.error("Failed to update localStorage:", error);
-            }
+            } catch (e) {}
           }
 
-          // Close modal immediately after successful payment
           onClose();
-          onPaymentSuccess?.(); // Close the parent modal in VoiceChat
-          router.refresh(); // Refresh to show updated minutes
+          onPaymentSuccess?.();
+          router.refresh();
 
-          // Show success message after modal is closed
           setTimeout(() => {
             Swal.fire({
-              icon: 'success',
-              title: 'Payment Successful!',
+              icon: "success",
+              title: "Payment Successful!",
               text: `${data.minutesAdded} minutes have been added to your account.`,
               timer: 3000,
               timerProgressBar: true,
@@ -189,7 +158,6 @@ const CardForm = ({
           setError("Payment processing failed");
         }
       }
-
     } catch (err: any) {
       console.error("Payment error:", err);
       setError("An unexpected error occurred. Please try again.");
@@ -201,98 +169,99 @@ const CardForm = ({
   const packageInfo = MINUTES_PACKAGES[minutes as keyof typeof MINUTES_PACKAGES];
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      {/* Payment Method Selection */}
+    <form onSubmit={handleSubmit} className="space-y-4 text-left">
+      {/* Method Tabs */}
       {paymentMethods.length > 0 && (
-        <div className="space-y-3">
-          <label className="block text-sm font-medium text-gray-700">
-            Payment Method
-          </label>
+        <div className="flex gap-2 mb-3">
+          <button
+            type="button"
+            onClick={() => setUseNewCard(false)}
+            className={`flex-1 py-2.5 rounded-xl font-bold text-xs cursor-pointer border transition-all ${
+              !useNewCard
+                ? "bg-gradient-to-br from-[#17C97F] to-[#0E9C63] text-[#06180F] border-transparent shadow-xs"
+                : "bg-white border-[#E6DDC0] text-[#4C5C53] hover:bg-[#F2EAD3]/30"
+            }`}
+          >
+            Saved Card
+          </button>
+          <button
+            type="button"
+            onClick={() => setUseNewCard(true)}
+            className={`flex-1 py-2.5 rounded-xl font-bold text-xs cursor-pointer border transition-all ${
+              useNewCard
+                ? "bg-gradient-to-br from-[#17C97F] to-[#0E9C63] text-[#06180F] border-transparent shadow-xs"
+                : "bg-white border-[#E6DDC0] text-[#4C5C53] hover:bg-[#F2EAD3]/30"
+            }`}
+          >
+            New Card
+          </button>
+        </div>
+      )}
 
-          {/* Toggle between saved methods and new card */}
-          <div className="flex gap-4 mb-4">
-            <button
-              type="button"
-              onClick={() => setUseNewCard(false)}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                !useNewCard
-                  ? "bg-orange-500 text-white"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+      {/* Saved Cards Selection */}
+      {!useNewCard && paymentMethods.length > 0 && (
+        <div className="space-y-2">
+          {paymentMethods.map((pm) => (
+            <label
+              key={pm.id}
+              className={`flex items-center gap-3 p-3 rounded-2xl border cursor-pointer transition-all ${
+                selectedPaymentMethod === pm.id
+                  ? "border-[#17C97F] bg-[#F3FBF6]"
+                  : "border-[#E6DDC0] bg-white hover:bg-[#F2EAD3]/20"
               }`}
             >
-              Use Saved Card
-            </button>
-            <button
-              type="button"
-              onClick={() => setUseNewCard(true)}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                useNewCard
-                  ? "bg-orange-500 text-white"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
-            >
-              Use New Card
-            </button>
-          </div>
-
-          {/* Saved Payment Methods */}
-          {!useNewCard && (
-            <div className="space-y-2">
-              {paymentMethods.slice(0, 2).map((pm) => (
-                <label key={pm.id} className="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value={pm.id}
-                    checked={selectedPaymentMethod === pm.id}
-                    onChange={(e) => setSelectedPaymentMethod(e.target.value)}
-                    className="mr-3 text-orange-500 focus:ring-orange-500"
-                  />
-                  <div className="flex-1">
-                    <div className="font-medium capitalize">
-                      {pm.card.brand} ending in {pm.card.last4}
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      Expires {pm.card.exp_month}/{pm.card.exp_year}
-                    </div>
-                  </div>
-                </label>
-              ))}
-            </div>
-          )}
+              <input
+                type="radio"
+                name="savedMethod"
+                value={pm.id}
+                checked={selectedPaymentMethod === pm.id}
+                onChange={(e) => setSelectedPaymentMethod(e.target.value)}
+                className="accent-[#0E9C63] w-4 h-4"
+              />
+              <div className="flex-1 text-xs">
+                <span className="font-bold capitalize text-[#10201A]">
+                  {pm.card?.brand} ending in {pm.card?.last4}
+                </span>
+                <span className="block text-[11px] text-[#4C5C53]">
+                  Exp: {pm.card?.exp_month}/{pm.card?.exp_year}
+                </span>
+              </div>
+            </label>
+          ))}
         </div>
       )}
 
       {/* New Card Form */}
       {useNewCard && (
-        <>
+        <div className="space-y-3">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-xs font-semibold text-[#4C5C53] mb-1 uppercase tracking-wider">
               Cardholder Name
             </label>
             <input
               type="text"
               value={cardholderName}
               onChange={(e) => setCardholderName(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-              placeholder="John Doe"
+              className="w-full px-4 py-2.5 rounded-xl border border-[#E6DDC0] bg-[#F2EAD3]/20 text-xs font-sans text-[#10201A] focus:outline-none focus:border-[#17C97F]"
+              placeholder="Full Name on Card"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Card Information
+            <label className="block text-xs font-semibold text-[#4C5C53] mb-1 uppercase tracking-wider">
+              Card Details
             </label>
-            <div className="p-3 border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-orange-500 focus-within:border-transparent">
+            <div className="p-3 border border-[#E6DDC0] rounded-xl bg-white focus-within:border-[#17C97F]">
               <CardElement
                 options={{
                   style: {
                     base: {
-                      fontSize: "16px",
-                      color: "#424770",
+                      fontSize: "14px",
+                      color: "#10201A",
+                      fontFamily: "Inter, sans-serif",
                       "::placeholder": {
-                        color: "#aab7c4",
+                        color: "#9AB0A5",
                       },
                     },
                   },
@@ -300,33 +269,29 @@ const CardForm = ({
               />
             </div>
           </div>
-        </>
-      )}
-
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-          <div className="flex items-center">
-            <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-            </svg>
-            {error}
-          </div>
         </div>
       )}
 
-      <div className="flex gap-4 justify-center pt-4">
+      {error && (
+        <div className="p-3 bg-[#FFE8DF] border border-[#FF6A4D]/30 text-[#E24E30] text-xs rounded-xl">
+          {error}
+        </div>
+      )}
+
+      {/* Action Buttons */}
+      <div className="flex gap-3 pt-2">
         <button
           type="button"
           onClick={onClose}
-          className="px-6 py-3 rounded-lg bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium transition-colors"
           disabled={loading}
+          className="flex-1 py-3 rounded-full border border-[#E6DDC0] text-xs font-bold text-[#4C5C53] hover:bg-[#F2EAD3]/40 transition-colors"
         >
           Cancel
         </button>
         <button
           type="submit"
-          className="px-6 py-3 rounded-lg bg-gradient-to-r from-[#ff6a3d] to-[#ff8a1e] text-white font-semibold hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={loading || (!useNewCard && !selectedPaymentMethod)}
+          className="flex-1 py-3 rounded-full font-bold text-xs text-white bg-gradient-to-br from-[#FF6A4D] to-[#E24E30] shadow-[0_6px_16px_rgba(255,106,77,0.35)] hover:-translate-y-0.5 transition-all disabled:opacity-50 cursor-pointer"
         >
           {loading ? "Processing..." : `Pay ${packageInfo?.price}`}
         </button>
@@ -335,7 +300,13 @@ const CardForm = ({
   );
 };
 
-export default function MinutesPaymentModal({ isOpen, onClose, minutes, userId, onPaymentSuccess }: MinutesPaymentModalProps) {
+export default function MinutesPaymentModal({
+  isOpen,
+  onClose,
+  minutes,
+  userId,
+  onPaymentSuccess,
+}: MinutesPaymentModalProps) {
   const router = useRouter();
   const [clientSecret, setClientSecret] = useState("");
   const [paymentMethods, setPaymentMethods] = useState<any[]>([]);
@@ -343,18 +314,14 @@ export default function MinutesPaymentModal({ isOpen, onClose, minutes, userId, 
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>("");
   const [loadingPaymentMethods, setLoadingPaymentMethods] = useState(false);
 
-  // Redirect to login if userId is empty
   useEffect(() => {
     if (isOpen && (!userId || userId.trim() === "")) {
-      alert("Please log in to purchase minutes");
       router.push("/login");
       onClose();
-      return;
     }
   }, [isOpen, userId, router, onClose]);
 
   useEffect(() => {
-    // Create PaymentIntent as soon as the modal opens
     if (isOpen && minutes && userId && userId.trim() !== "") {
       fetch("/api/create-minutes-payment-intent", {
         method: "POST",
@@ -371,43 +338,29 @@ export default function MinutesPaymentModal({ isOpen, onClose, minutes, userId, 
     }
   }, [isOpen, minutes, userId]);
 
-  // Fetch payment methods when modal opens
   useEffect(() => {
     if (isOpen && userId && userId.trim() !== "") {
       setLoadingPaymentMethods(true);
-      console.log("Fetching payment methods for userId:", userId);
       fetch("/api/get-payment-methods", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId }),
       })
-        .then((res) => {
-          console.log("Response status:", res.status);
-          console.log("Response headers:", Object.fromEntries(res.headers.entries()));
-          return res.json();
-        })
+        .then((res) => res.json())
         .then((data) => {
-          console.log("Full payment methods response:", JSON.stringify(data, null, 2));
-          if (data.paymentMethods) {
+          if (data.paymentMethods && data.paymentMethods.length > 0) {
             setPaymentMethods(data.paymentMethods);
-            if (data.paymentMethods.length > 0) {
-              setSelectedPaymentMethod(data.paymentMethods[0].id);
-              setUseNewCard(false);
-            } else {
-              setUseNewCard(true);
-            }
+            setSelectedPaymentMethod(data.paymentMethods[0].id);
+            setUseNewCard(false);
           } else {
-            console.log("No paymentMethods property in response");
+            setUseNewCard(true);
           }
         })
-        .catch((err) => {
-          console.error("Failed to fetch payment methods:", err);
-        })
+        .catch((err) => console.error("Failed to fetch payment methods:", err))
         .finally(() => setLoadingPaymentMethods(false));
     }
   }, [isOpen, userId]);
 
-  // Memoize options to prevent unnecessary re-renders - must be before early return
   const options: StripeElementsOptions = {
     clientSecret,
     appearance: {
@@ -423,28 +376,28 @@ export default function MinutesPaymentModal({ isOpen, onClose, minutes, userId, 
   const packageInfo = MINUTES_PACKAGES[minutes as keyof typeof MINUTES_PACKAGES];
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full relative">
-        {/* Close button */}
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[600] flex items-center justify-center p-4 animate-modal-in">
+      <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full relative shadow-2xl border border-[#E6DDC0]">
         <button
+          type="button"
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 transition-colors"
+          className="absolute top-4 right-4 w-8 h-8 rounded-full bg-[#FFE8DF] text-[#E24E30] hover:bg-[#FF6A4D] hover:text-white flex items-center justify-center text-sm font-bold transition-colors cursor-pointer"
         >
-          <BsX className="w-6 h-6" />
+          ✕
         </button>
 
         <div className="text-center mb-6">
-          <div className="w-16 h-16 mx-auto mb-4 bg-orange-100 rounded-full flex items-center justify-center">
-            <BsClock className="w-8 h-8 text-orange-600" />
+          <div className="w-14 h-14 mx-auto mb-3 bg-[#DDF7E9] rounded-2xl flex items-center justify-center text-2xl text-[#0E9C63]">
+            🎙️
           </div>
-          <h2 className="text-2xl font-bold mb-2">
+          <h2 className="text-xl font-bold text-[#10201A] mb-1">
             Purchase {packageInfo?.minutes} Minutes
           </h2>
-          <p className="text-gray-600 mb-2">
+          <p className="text-2xl font-extrabold text-[#0E9C63] mb-1">
             {packageInfo?.price}
           </p>
-          <p className="text-sm text-gray-500">
-            {packageInfo?.description}
+          <p className="text-xs text-[#4C5C53]">
+            {packageInfo?.description}. Minutes never expire.
           </p>
         </div>
 
@@ -464,9 +417,9 @@ export default function MinutesPaymentModal({ isOpen, onClose, minutes, userId, 
             />
           </Elements>
         ) : (
-          <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto"></div>
-            <p className="mt-2 text-gray-600">Preparing payment form...</p>
+          <div className="text-center py-8 text-xs text-[#4C5C53]">
+            <div className="w-6 h-6 border-2 border-[#17C97F] border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+            <span>Preparing secure checkout...</span>
           </div>
         )}
       </div>
