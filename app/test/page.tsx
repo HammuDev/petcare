@@ -84,7 +84,7 @@ const ChatPage = () => {
       }
 
       // Dynamic import of ElevenLabs SDK
-      const { Conversation } = await import('@11labs/client')
+      const { Conversation } = await import('@elevenlabs/client')
 
       conversationRef.current = await Conversation.startSession({
         conversationToken: token,
