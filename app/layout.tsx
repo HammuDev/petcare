@@ -21,7 +21,11 @@ const poppins = Poppins({
 export const metadata: Metadata = {
   title: "Vet365.ai",
   description: "Get instant answers to your pet's health questions with our AI-powered veterinary assistant.",
- 
+  icons: {
+    icon: "/paw.png",
+    shortcut: "/paw.png",
+    apple: "/paw.png",
+  },
 };
 
 export default function RootLayout({

@@ -58,9 +58,11 @@ export default function VetNavHeader({ showNavLinks = false }: VetNavHeaderProps
           href="/"
           className="flex items-center gap-2.5 font-display font-bold text-lg sm:text-xl text-white tracking-tight hover:opacity-95 transition-opacity"
         >
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#17C97F] to-[#0E9C63] flex items-center justify-center text-[#06180F] shadow-[0_4px_12px_rgba(23,201,127,0.3)]">
-            <PawPrint className="w-4 h-4 text-[#06180F]" />
-          </div>
+          <img
+            src="/paw.png"
+            alt="VET365.AI Logo"
+            className="w-8 h-8 rounded-xl object-contain shadow-[0_4px_12px_rgba(23,201,127,0.3)]"
+          />
           <span className="font-semibold tracking-wide">VET365.AI</span>
         </Link>
 

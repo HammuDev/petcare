@@ -744,9 +744,11 @@ export default function Home() {
           <div className="max-w-[1180px] mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
             <div>
               <div className="flex items-center gap-2.5 font-display font-bold text-lg text-white mb-3">
-                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#17C97F] to-[#0E9C63] flex items-center justify-center text-[#06180F]">
-                  <PawPrint className="w-4 h-4" />
-                </div>
+                <img
+                  src="/paw.png"
+                  alt="VET365.AI Logo"
+                  className="w-8 h-8 rounded-xl object-contain shadow-[0_4px_12px_rgba(23,201,127,0.3)]"
+                />
                 <span>VET365.AI</span>
               </div>
               <p className="text-xs text-[#71877B] leading-relaxed max-w-xs">

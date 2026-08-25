@@ -172,9 +172,11 @@ export default function VetAuthCard({ initialMode }: VetAuthCardProps) {
         href="/"
         className="absolute top-7 left-8 flex items-center gap-3 font-display font-bold text-lg text-white hover:opacity-90 transition z-30"
       >
-        <div className="w-8 h-8 rounded-xl bg-[#17C97F] flex items-center justify-center text-[#0A1512] shadow-lg shadow-[#17C97F]/30">
-          <PawPrint className="w-4 h-4 text-[#0A1512]" />
-        </div>
+        <img
+          src="/paw.png"
+          alt="VET365.AI Logo"
+          className="w-8 h-8 rounded-xl object-contain shadow-lg shadow-[#17C97F]/30"
+        />
         <span>VET365.AI</span>
       </Link>
 
