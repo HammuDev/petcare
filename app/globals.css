@@ -38,14 +38,27 @@
   --font-mono: 'IBM Plex Mono', monospace;
 }
 
-body, html {
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
   scroll-behavior: smooth;
+  overflow-x: hidden;
+  max-width: 100vw;
+  width: 100%;
+  position: relative;
 }
 
 body {
   font-family: var(--font-sans);
   background-color: var(--paper);
   color: var(--inktext);
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Keyframes */

@@ -119,22 +119,22 @@ export default function ChatThreadPage() {
 
   return (
     <VetChatLayout userId={userId || undefined}>
-      <div className="flex-1 bg-[#FBF7EC]/60 flex flex-col relative overflow-hidden min-h-0">
+      <div className="flex-1 bg-[#FBF7EC]/60 flex flex-col relative overflow-hidden min-h-0 w-full max-w-full">
         {/* Ambient Top Glow */}
-        <div className="absolute w-[420px] h-[420px] rounded-full blur-[100px] bg-[#17C97F] opacity-[0.08] -top-40 -right-[120px] pointer-events-none" />
+        <div className="absolute w-[320px] sm:w-[420px] h-[320px] sm:h-[420px] rounded-full blur-[100px] bg-[#17C97F] opacity-[0.08] -top-40 -right-[120px] pointer-events-none" />
 
         {/* Thread Top Bar */}
-        <div className="bg-white border-b border-[#E6DDC0] flex-shrink-0 px-6 sm:px-8 py-3.5 flex items-center justify-between relative z-10 shadow-xs">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#EAF8F1] text-[#0E9C63] flex items-center justify-center">
-              <Stethoscope className="w-5 h-5" />
+        <div className="bg-white border-b border-[#E6DDC0] flex-shrink-0 px-4 sm:px-8 py-3 sm:py-3.5 flex items-center justify-between relative z-10 shadow-xs w-full">
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#EAF8F1] text-[#0E9C63] flex items-center justify-center flex-shrink-0">
+              <Stethoscope className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
             <div>
-              <h1 className="text-sm sm:text-base font-bold text-[#10201A] flex items-center gap-2">
+              <h1 className="text-xs sm:text-base font-bold text-[#10201A] flex items-center gap-1.5 sm:gap-2">
                 <span>Kora | AI Veterinary Consult</span>
                 <span className="w-2 h-2 rounded-full bg-[#17C97F] animate-pulse-dot" />
               </h1>
-              <p className="text-[11px] text-[#4C5C53] font-mono">
+              <p className="text-[10px] sm:text-[11px] text-[#4C5C53] font-mono">
                 Consultation #{chatId.slice(-6)}
               </p>
             </div>
@@ -142,7 +142,7 @@ export default function ChatThreadPage() {
         </div>
 
         {/* Thread Messages List */}
-        <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-8 flex flex-col gap-4 relative z-10 max-w-[860px] mx-auto w-full custom-scroll">
+        <div className="flex-1 min-h-0 overflow-y-auto p-3.5 sm:p-8 flex flex-col gap-3 sm:gap-4 relative z-10 max-w-[860px] mx-auto w-full custom-scroll">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20 gap-3 text-xs text-[#4C5C53]">
               <div className="w-6 h-6 rounded-full border-2 border-[#17C97F] border-t-transparent animate-spin" />
@@ -164,23 +164,23 @@ export default function ChatThreadPage() {
               return (
                 <div
                   key={msg._id || index}
-                  className={`flex flex-col max-w-[88%] sm:max-w-[75%] ${
+                  className={`flex flex-col max-w-[90%] sm:max-w-[75%] ${
                     isAi ? "self-start items-start" : "self-end items-end"
                   }`}
                 >
                   <div
-                    className={`px-4.5 py-3 rounded-2xl text-xs sm:text-sm leading-relaxed shadow-xs ${
+                    className={`px-3.5 sm:px-4.5 py-2.5 sm:py-3 rounded-2xl text-xs sm:text-sm leading-relaxed shadow-xs ${
                       isAi
                         ? "bg-white border border-[#E6DDC0] text-[#10201A] rounded-bl-[4px]"
                         : "bg-gradient-to-br from-[#0E9C63] to-[#17C97F] text-[#06180F] font-medium rounded-br-[4px]"
                     }`}
                   >
                     {isAi && (
-                      <span className="block font-mono text-[10px] uppercase tracking-[0.08em] font-bold text-[#0E9C63] mb-1">
+                      <span className="block font-mono text-[9.5px] sm:text-[10px] uppercase tracking-[0.08em] font-bold text-[#0E9C63] mb-1">
                         Kora | Clinical Triage
                       </span>
                     )}
-                    <p className="whitespace-pre-wrap">{msg.content}</p>
+                    <p className="whitespace-pre-wrap break-words">{msg.content}</p>
                   </div>
                   <div className="flex items-center gap-1 font-mono text-[10px] text-[#4C5C53] mt-1 px-1">
                     <span>
@@ -199,8 +199,8 @@ export default function ChatThreadPage() {
           {/* Typing Indicator */}
           {isAiTyping && (
             <div className="self-start items-start flex flex-col max-w-[85%] sm:max-w-[75%] animate-modal-in">
-              <div className="bg-white border border-[#E6DDC0] px-4 py-2.5 rounded-2xl rounded-bl-[4px] shadow-xs flex items-center gap-2">
-                <span className="font-mono text-[10.5px] text-[#0E9C63] font-semibold">Kora is evaluating</span>
+              <div className="bg-white border border-[#E6DDC0] px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-2xl rounded-bl-[4px] shadow-xs flex items-center gap-2">
+                <span className="font-mono text-[10px] sm:text-[10.5px] text-[#0E9C63] font-semibold">Kora is evaluating</span>
                 <div className="inline-flex gap-1 py-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#0E9C63] animate-typing-dot" />
                   <span
@@ -220,25 +220,25 @@ export default function ChatThreadPage() {
         </div>
 
         {/* Message Composer Bar */}
-        <div className="bg-white border-t border-[#E6DDC0] flex-shrink-0 px-4 sm:px-8 py-3.5 relative z-10 shadow-xs">
+        <div className="bg-white border-t border-[#E6DDC0] flex-shrink-0 px-3.5 sm:px-8 py-2.5 sm:py-3.5 relative z-10 shadow-xs w-full">
           <form
             onSubmit={handleSendMessage}
-            className="max-w-[860px] mx-auto w-full flex items-center gap-2.5"
+            className="max-w-[860px] mx-auto w-full flex items-center gap-2"
           >
             <input
               type="text"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               placeholder="Ask Kora about symptoms, dosages, or advice..."
-              className="flex-1 px-5 py-2.5 rounded-full border border-[#E6DDC0] bg-[#F2EAD3]/25 font-sans text-xs sm:text-sm text-[#10201A] transition-all focus:outline-none focus:border-[#17C97F] focus:bg-white focus:ring-2 focus:ring-[#17C97F]/20"
+              className="flex-1 px-4 sm:px-5 py-2 sm:py-2.5 rounded-full border border-[#E6DDC0] bg-[#F2EAD3]/25 font-sans text-xs sm:text-sm text-[#10201A] transition-all focus:outline-none focus:border-[#17C97F] focus:bg-white focus:ring-2 focus:ring-[#17C97F]/20"
             />
             <button
               type="submit"
               disabled={!inputText.trim() || isSending}
-              className="w-10 h-10 rounded-full bg-gradient-to-br from-[#FF6A4D] to-[#E24E30] text-white border-none flex items-center justify-center cursor-pointer flex-shrink-0 shadow-[0_4px_12px_rgba(255,106,77,0.35)] hover:-translate-y-0.5 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-[#FF6A4D] to-[#E24E30] text-white border-none flex items-center justify-center cursor-pointer flex-shrink-0 shadow-[0_4px_12px_rgba(255,106,77,0.35)] hover:-translate-y-0.5 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               aria-label="Send message"
             >
-              <Send className="w-4 h-4" />
+              <Send className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
           </form>
         </div>

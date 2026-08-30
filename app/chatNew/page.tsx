@@ -471,15 +471,15 @@ const page = () => {
   }
 
   return (
-    <div className="font-sans text-gray-800 min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="font-sans text-gray-800 min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 w-full max-w-[100vw] overflow-x-hidden">
       <Header />
 
-      <div className="flex h-[calc(100vh-80px)]">
+      <div className="flex h-[calc(100vh-80px)] w-full max-w-full overflow-x-hidden relative">
         {/* Sidebar */}
         <div className={`
           ${sidebarOpen ? 'w-80' : 'w-0 md:w-80'}
           bg-white shadow-xl transition-all duration-300 ease-in-out overflow-hidden
-          border-r border-gray-200 flex flex-col
+          border-r border-gray-200 flex flex-col flex-shrink-0
         `}>
           {/* Sidebar Header */}
           <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-blue-600 to-purple-600">
@@ -487,7 +487,7 @@ const page = () => {
               <h2 className="text-lg font-semibold">Chat History</h2>
               <button
                 onClick={() => setSidebarOpen(false)}
-                className="md:hidden p-1 hover:bg-white/20 rounded transition-colors"
+                className="md:hidden p-1 hover:bg-white/20 rounded transition-colors cursor-pointer"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -546,10 +546,10 @@ const page = () => {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 flex flex-col min-w-0">
+        <div className="flex-1 flex flex-col min-w-0 w-full overflow-x-hidden overflow-y-auto">
           {/* Mobile Sidebar Toggle */}
           {!sidebarOpen && (
-            <div className="md:hidden p-4 border-b border-gray-200 bg-white">
+            <div className="md:hidden p-3.5 border-b border-gray-200 bg-white flex-shrink-0">
               <button
                 onClick={() => setSidebarOpen(true)}
                 className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
@@ -557,31 +557,31 @@ const page = () => {
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
-                <span className="text-sm">Chat History</span>
+                <span className="text-sm font-medium">Chat History</span>
               </button>
             </div>
           )}
 
           {/* Chat Interface */}
-          <div className="flex-1 flex flex-col items-center justify-center p-4 md:p-8">
+          <div className="flex-1 flex flex-col items-center justify-center p-4 md:p-8 w-full max-w-full overflow-x-hidden">
             {/* Main Recording Interface */}
-            <div className="text-center mb-8 max-w-2xl w-full">
+            <div className="text-center mb-8 max-w-2xl w-full px-2 sm:px-4">
               <div className="mb-6">
-                <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
+                <h1 className="text-3xl xs:text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-3 sm:mb-4">
                   Voice Chat Assistant
                 </h1>
-                <p className="text-gray-600 text-lg mb-8 max-w-md mx-auto">
+                <p className="text-gray-600 text-sm sm:text-lg mb-6 sm:mb-8 max-w-md mx-auto">
                   Speak naturally and I'll help you with your pet care questions.
                 </p>
               </div>
 
               {/* Recording Button */}
-              <div className="relative mb-8">
+              <div className="relative mb-8 w-full flex flex-col items-center justify-center overflow-hidden py-4">
                 <button
                   onClick={isRecording ? stopRecording : startRecording}
                   disabled={isProcessing}
                   className={`
-                    relative w-36 h-36 md:w-40 md:h-40 rounded-full border-4 transition-all duration-300 flex items-center justify-center mx-auto
+                    relative w-32 h-32 sm:w-36 sm:h-36 md:w-40 md:h-40 rounded-full border-4 transition-all duration-300 flex items-center justify-center mx-auto
                     ${isRecording
                       ? 'border-red-500 bg-gradient-to-br from-red-50 to-red-100 shadow-lg shadow-red-200/50 animate-pulse'
                       : 'border-blue-400 bg-gradient-to-br from-blue-50 to-purple-50 hover:from-blue-100 hover:to-purple-100 shadow-lg hover:shadow-xl hover:scale-105'
@@ -591,7 +591,7 @@ const page = () => {
                 >
                   {/* Microphone Icon */}
                   <svg
-                    className={`w-18 h-18 md:w-20 md:h-20 transition-colors duration-300 ${
+                    className={`w-16 h-16 md:w-20 md:h-20 transition-colors duration-300 ${
                       isRecording ? 'text-red-500' : 'text-blue-500'
                     }`}
                     fill="none"
@@ -617,7 +617,7 @@ const page = () => {
                 </button>
 
                 {/* Status Text */}
-                <div className="mt-6 text-base md:text-lg">
+                <div className="mt-6 text-sm sm:text-base md:text-lg">
                   {isProcessing ? (
                     <span className="text-blue-600 flex items-center justify-center font-medium">
                       <svg className="animate-spin -ml-1 mr-3 h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

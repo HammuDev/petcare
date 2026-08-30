@@ -159,30 +159,30 @@ export default function VetAuthCard({ initialMode }: VetAuthCardProps) {
   };
 
   return (
-    <div className="bg-gradient-to-b from-[#16332A] via-[#0A1512] to-[#06100D] min-h-screen font-sans text-[#EAF3ED] flex items-center justify-center p-4 selection:bg-[#17C97F] selection:text-[#0A1512] relative overflow-hidden">
+    <div className="bg-gradient-to-b from-[#16332A] via-[#0A1512] to-[#06100D] min-h-screen font-sans text-[#EAF3ED] flex items-center justify-center p-3 sm:p-6 md:p-8 selection:bg-[#17C97F] selection:text-[#0A1512] relative overflow-x-hidden w-full max-w-[100vw]">
       {/* Ambient Glowing Background Blobs */}
-      <div className="fixed -top-28 -left-28 w-[480px] h-[480px] bg-[#17C97F]/20 rounded-full blur-[110px] animate-drift1 pointer-events-none" />
+      <div className="fixed -top-28 -left-28 w-[320px] sm:w-[480px] h-[320px] sm:h-[480px] bg-[#17C97F]/20 rounded-full blur-[110px] animate-drift1 pointer-events-none" />
       <div
-        className="fixed -bottom-28 -right-28 w-[420px] h-[420px] bg-[#FF6A4D]/15 rounded-full blur-[110px] animate-drift2 pointer-events-none"
+        className="fixed -bottom-28 -right-28 w-[280px] sm:w-[420px] h-[280px] sm:h-[420px] bg-[#FF6A4D]/15 rounded-full blur-[110px] animate-drift2 pointer-events-none"
         style={{ animationDelay: "-6s" }}
       />
 
       {/* Top Logo Link */}
       <Link
         href="/"
-        className="absolute top-7 left-8 flex items-center gap-3 font-display font-bold text-lg text-white hover:opacity-90 transition z-30"
+        className="absolute top-4 left-4 sm:top-7 sm:left-8 flex items-center gap-2.5 sm:gap-3 font-display font-bold text-base sm:text-lg text-white hover:opacity-90 transition z-30"
       >
         <img
           src="/paw.png"
           alt="VET365.AI Logo"
-          className="w-8 h-8 rounded-xl object-contain shadow-lg shadow-[#17C97F]/30"
+          className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl object-contain shadow-lg shadow-[#17C97F]/30"
         />
         <span>VET365.AI</span>
       </Link>
 
       {/* Main Split Box with Fast Snappy Sliding Panels */}
       <div
-        className={`w-full max-w-5xl bg-[#0F241D]/90 border rounded-[30px] shadow-2xl backdrop-blur-2xl z-20 overflow-hidden relative min-h-[640px] transition-colors duration-300 ${
+        className={`w-full max-w-5xl bg-[#0F241D]/90 border rounded-2xl sm:rounded-[30px] shadow-2xl backdrop-blur-2xl z-20 overflow-hidden relative min-h-[520px] lg:min-h-[640px] mt-12 sm:mt-0 transition-colors duration-300 ${
           isSignup
             ? "border-[#FF6A4D]/30 shadow-[#FF6A4D]/15"
             : "border-[#17C97F]/30 shadow-[#17C97F]/15"

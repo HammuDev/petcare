@@ -231,27 +231,27 @@ export default function VetVoiceChat({
   };
 
   return (
-    <div className="w-full max-w-[560px] mx-auto text-center relative z-10 px-4 py-8">
+    <div className="w-full max-w-[560px] mx-auto text-center relative z-10 px-3 sm:px-4 py-6 sm:py-8 overflow-hidden">
       {/* Eyebrow */}
-      <div className="inline-flex items-center gap-2 font-mono text-[12px] uppercase tracking-[0.14em] font-semibold text-[#0E9C63] mb-3">
+      <div className="inline-flex items-center gap-2 font-mono text-[11px] sm:text-[12px] uppercase tracking-[0.14em] font-semibold text-[#0E9C63] mb-2 sm:mb-3">
         <span className="w-2 h-2 rounded-full bg-[#FF6A4D] shadow-[0_0_0_4px_rgba(255,106,77,0.25)]" />
         <span>Live voice consult</span>
       </div>
 
       {/* Main Title & Lead */}
-      <h1 className="text-3xl sm:text-4xl font-extrabold text-[#10201A] tracking-tight mb-2">
+      <h1 className="text-2xl xs:text-3xl sm:text-4xl font-extrabold text-[#10201A] tracking-tight mb-2">
         Voice Chat Assistant
       </h1>
-      <p className="text-[#4C5C53] text-sm sm:text-base mb-8 max-w-[440px] mx-auto leading-relaxed">
+      <p className="text-[#4C5C53] text-xs sm:text-base mb-6 sm:mb-8 max-w-[440px] mx-auto leading-relaxed">
         Speak naturally and <b className="text-[#0E9C63]">I'll help you with your pet care questions.</b>
       </p>
 
       {/* Voice Control Card */}
-      <div className="bg-white border border-[#E6DDC0] rounded-3xl p-6 sm:p-8 shadow-[0_16px_36px_-12px_rgba(10,21,18,0.1)] max-w-[420px] mx-auto relative overflow-hidden">
+      <div className="bg-white border border-[#E6DDC0] rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-[0_16px_36px_-12px_rgba(10,21,18,0.1)] w-full max-w-[420px] mx-auto relative overflow-hidden">
         {/* Top bar inside card */}
-        <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center justify-between mb-4 sm:mb-5">
           <div className="text-left">
-            <h3 className="font-bold text-base text-[#10201A]">Voice Chat</h3>
+            <h3 className="font-bold text-sm sm:text-base text-[#10201A]">Voice Chat</h3>
             <span className="text-xs text-[#4C5C53]">
               Available time: <b className="text-[#0E9C63]">{totalTime} mins</b>
             </span>
@@ -261,7 +261,7 @@ export default function VetVoiceChat({
             type="button"
             onClick={toggleMute}
             disabled={!isLive}
-            className={`w-9 h-9 rounded-full flex items-center justify-center transition-all cursor-pointer ${
+            className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center transition-all cursor-pointer flex-shrink-0 ${
               isLive
                 ? isMuted
                   ? "bg-[#FFE8DF] text-[#E24E30]"
@@ -271,7 +271,7 @@ export default function VetVoiceChat({
             title={isMuted ? "Unmute audio" : "Mute audio"}
           >
             {isMuted ? (
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <line x1="1" y1="1" x2="23" y2="23" />
                 <path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6" />
                 <path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23" />
@@ -279,7 +279,7 @@ export default function VetVoiceChat({
                 <line x1="8" y1="23" x2="16" y2="23" />
               </svg>
             ) : (
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
                 <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
                 <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
@@ -289,9 +289,9 @@ export default function VetVoiceChat({
         </div>
 
         {/* Status Pill */}
-        <div className="mb-7">
+        <div className="mb-5 sm:mb-7">
           <div
-            className={`inline-flex items-center gap-2 text-xs font-semibold px-4 py-1.5 rounded-full transition-colors ${
+            className={`inline-flex items-center gap-2 text-xs font-semibold px-3.5 sm:px-4 py-1 sm:py-1.5 rounded-full transition-colors ${
               isLive
                 ? "bg-[#DDF7E9] text-[#0E9C63]"
                 : status === "connecting"
@@ -315,7 +315,7 @@ export default function VetVoiceChat({
         </div>
 
         {/* Pulsing Orb & Microphone Button */}
-        <div className="relative w-[170px] h-[170px] mx-auto flex items-center justify-center">
+        <div className="relative w-[150px] h-[150px] sm:w-[170px] sm:h-[170px] mx-auto flex items-center justify-center">
           {/* Animated concentric rings when active */}
           {isLive && (
             <>
@@ -331,7 +331,7 @@ export default function VetVoiceChat({
             type="button"
             onClick={isLive ? handleEndConversation : handleStartConversation}
             className={`
-              relative w-[140px] h-[140px] rounded-full border-none cursor-pointer
+              relative w-[125px] h-[125px] sm:w-[140px] sm:h-[140px] rounded-full border-none cursor-pointer
               flex items-center justify-center transition-all duration-300
               ${
                 isLive
@@ -341,13 +341,13 @@ export default function VetVoiceChat({
             `}
             aria-label={isLive ? "End voice consult" : "Start voice consult"}
           >
-            <div className="w-[46px] h-[46px] text-white flex items-center justify-center">
+            <div className="w-[40px] h-[40px] sm:w-[46px] sm:h-[46px] text-white flex items-center justify-center">
               {isLive ? (
-                <svg viewBox="0 0 24 24" fill="none" className="w-10 h-10">
+                <svg viewBox="0 0 24 24" fill="none" className="w-8 h-8 sm:w-10 sm:h-10">
                   <path d="M6 18L18 6M6 6l12 12" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" />
                 </svg>
               ) : (
-                <svg viewBox="0 0 24 24" fill="none" className="w-10 h-10">
+                <svg viewBox="0 0 24 24" fill="none" className="w-8 h-8 sm:w-10 sm:h-10">
                   <path
                     d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"
                     stroke="#fff"
@@ -366,7 +366,7 @@ export default function VetVoiceChat({
         </div>
 
         {/* Action Caption */}
-        <p className="text-xs text-[#4C5C53] mt-5 font-medium">
+        <p className="text-xs text-[#4C5C53] mt-4 sm:mt-5 font-medium leading-relaxed">
           {isLive
             ? "Live conversation in progress. Click the orb to disconnect."
             : "Click the orb to start live voice consultation with Kora"}

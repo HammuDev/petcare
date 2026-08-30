@@ -19,13 +19,19 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "Vet365.ai",
-  description: "Get instant answers to your pet's health questions with our AI-powered veterinary assistant.",
+  title: "Vet365.ai | 24/7 AI Veterinary Consultation & Triage",
+  description: "Get instant answers to your pet's health questions with our AI-powered veterinary assistant. Available 24/7.",
   icons: {
     icon: "/paw.png",
     shortcut: "/paw.png",
     apple: "/paw.png",
   },
+};
+
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
 };
 
 export default function RootLayout({
@@ -34,12 +40,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="overflow-x-hidden">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} antialiased w-full max-w-[100vw] overflow-x-hidden bg-[#FBF7EC] text-[#10201A]`}
       >
         {children}
-       
       </body>
     </html>
   );

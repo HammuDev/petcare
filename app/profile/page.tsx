@@ -198,17 +198,17 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FBF7EC] text-[#10201A]">
+    <div className="min-h-screen bg-[#FBF7EC] text-[#10201A] w-full max-w-[100vw] overflow-x-hidden">
       <VetNavHeader />
 
       {/* Hero Banner */}
-      <section className="relative overflow-hidden bg-[radial-gradient(120%_120%_at_50%_-10%,#16332A_0%,#0A1512_65%)] text-white pt-14 pb-16 px-4 sm:px-8 text-center">
-        <div className="absolute w-[460px] h-[460px] rounded-full bg-[#17C97F] opacity-20 -top-32 -left-20 blur-[90px] pointer-events-none animate-drift1" />
-        <div className="absolute w-[360px] h-[360px] rounded-full bg-[#FF6A4D] opacity-[0.15] -bottom-32 -right-20 blur-[90px] pointer-events-none animate-drift2" />
+      <section className="relative overflow-hidden bg-[radial-gradient(120%_120%_at_50%_-10%,#16332A_0%,#0A1512_65%)] text-white pt-10 sm:pt-14 pb-14 sm:pb-16 px-4 sm:px-8 text-center w-full">
+        <div className="absolute w-[320px] sm:w-[460px] h-[320px] sm:h-[460px] rounded-full bg-[#17C97F] opacity-20 -top-32 -left-20 blur-[90px] pointer-events-none animate-drift1" />
+        <div className="absolute w-[280px] sm:w-[360px] h-[280px] sm:h-[360px] rounded-full bg-[#FF6A4D] opacity-[0.15] -bottom-32 -right-20 blur-[90px] pointer-events-none animate-drift2" />
 
         <div className="relative z-10 max-w-[640px] mx-auto">
           {/* Avatar with Camera Icon Badge */}
-          <div className="relative w-28 h-28 rounded-full mx-auto mb-4 bg-gradient-to-br from-[#17C97F] to-[#0E9C63] text-[#06180F] font-bold text-3xl flex items-center justify-center shadow-[0_16px_40px_-12px_rgba(23,201,127,0.45),0_0_0_6px_rgba(23,201,127,0.15)] overflow-hidden border-2 border-white/20">
+          <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-full mx-auto mb-3 sm:mb-4 bg-gradient-to-br from-[#17C97F] to-[#0E9C63] text-[#06180F] font-bold text-2xl sm:text-3xl flex items-center justify-center shadow-[0_16px_40px_-12px_rgba(23,201,127,0.45),0_0_0_6px_rgba(23,201,127,0.15)] overflow-hidden border-2 border-white/20">
             {profileImage ? (
               <img
                 src={profileImage}
@@ -240,10 +240,10 @@ export default function ProfilePage() {
             </label>
           </div>
 
-          <h1 className="text-3xl sm:text-4xl font-display font-extrabold text-white mb-2 tracking-tight">
+          <h1 className="text-2xl xs:text-3xl sm:text-4xl font-display font-extrabold text-white mb-2 tracking-tight">
             Welcome back, {parsedUserData?.name || "Pet Parent"}!
           </h1>
-          <p className="text-[#9AB0A5] text-sm sm:text-base">
+          <p className="text-[#9AB0A5] text-xs sm:text-base">
             Manage your Vet365 account, talk minutes, and billing preferences.
           </p>
         </div>

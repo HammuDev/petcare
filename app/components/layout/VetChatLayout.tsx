@@ -93,14 +93,14 @@ export default function VetChatLayout({
   });
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden bg-[#FBF7EC] text-[#10201A]">
+    <div className="h-screen flex flex-col overflow-hidden bg-[#FBF7EC] text-[#10201A] w-full max-w-[100vw]">
       {/* Top Navigation */}
       <VetNavHeader />
 
       {/* Main Grid: Sidebar + Chat Body */}
-      <div className="grid grid-cols-1 md:grid-cols-[300px_1fr] lg:grid-cols-[320px_1fr] flex-1 min-h-0 overflow-hidden relative">
+      <div className="grid grid-cols-1 md:grid-cols-[300px_1fr] lg:grid-cols-[320px_1fr] flex-1 min-h-0 overflow-hidden relative w-full max-w-full">
         {/* Mobile History Bar */}
-        <div className="md:hidden flex items-center justify-between px-4 py-2.5 bg-white border-b border-[#E6DDC0]/70 z-30 shadow-xs">
+        <div className="md:hidden flex items-center justify-between px-3.5 sm:px-4 py-2.5 bg-white border-b border-[#E6DDC0]/70 z-30 shadow-xs w-full flex-shrink-0">
           <button
             type="button"
             onClick={() => setSidebarOpen((prev) => !prev)}
@@ -124,7 +124,11 @@ export default function VetChatLayout({
           className={`
             fixed md:static inset-y-0 left-0 z-40 md:z-10 w-[300px] md:w-full bg-white border-r border-[#E6DDC0]
             flex flex-col min-h-0 transition-transform duration-300 ease-in-out shadow-lg md:shadow-none
-            ${sidebarOpen ? "translate-x-0 top-[60px]" : "-translate-x-full md:translate-x-0"}
+            ${
+              sidebarOpen
+                ? "translate-x-0 top-[60px] visible pointer-events-auto"
+                : "-translate-x-full md:translate-x-0 invisible md:visible pointer-events-none md:pointer-events-auto"
+            }
           `}
         >
           {/* Sidebar Header */}
@@ -141,7 +145,7 @@ export default function VetChatLayout({
               <button
                 type="button"
                 onClick={() => setSidebarOpen(false)}
-                className="md:hidden p-1 rounded-lg hover:bg-gray-100 text-gray-500"
+                className="md:hidden p-1 rounded-lg hover:bg-gray-100 text-gray-500 cursor-pointer"
               >
                 <CloseIcon className="w-4 h-4" />
               </button>
@@ -242,7 +246,7 @@ export default function VetChatLayout({
         )}
 
         {/* Chat Main Area */}
-        <main className="flex-1 flex flex-col min-h-0 overflow-hidden relative">
+        <main className="flex-1 flex flex-col min-h-0 overflow-x-hidden overflow-y-auto relative w-full max-w-full">
           {children}
         </main>
       </div>

@@ -105,19 +105,19 @@ export default function TransactionsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FBF7EC] text-[#10201A]">
+    <div className="min-h-screen bg-[#FBF7EC] text-[#10201A] w-full max-w-[100vw] overflow-x-hidden">
       <VetNavHeader />
 
       {/* Hero Header */}
-      <section className="relative overflow-hidden bg-[radial-gradient(120%_120%_at_50%_-10%,#16332A_0%,#0A1512_65%)] text-white pt-12 pb-16 px-4 sm:px-8 text-center">
-        <div className="absolute w-[460px] h-[460px] rounded-full bg-[#17C97F] opacity-20 -top-32 -left-20 blur-[90px] pointer-events-none animate-drift1" />
-        <div className="absolute w-[360px] h-[360px] rounded-full bg-[#FF6A4D] opacity-[0.15] -bottom-32 -right-20 blur-[90px] pointer-events-none animate-drift2" />
+      <section className="relative overflow-hidden bg-[radial-gradient(120%_120%_at_50%_-10%,#16332A_0%,#0A1512_65%)] text-white pt-10 sm:pt-12 pb-14 sm:pb-16 px-4 sm:px-8 text-center w-full">
+        <div className="absolute w-[320px] sm:w-[460px] h-[320px] sm:h-[460px] rounded-full bg-[#17C97F] opacity-20 -top-32 -left-20 blur-[90px] pointer-events-none animate-drift1" />
+        <div className="absolute w-[280px] sm:w-[360px] h-[280px] sm:h-[360px] rounded-full bg-[#FF6A4D] opacity-[0.15] -bottom-32 -right-20 blur-[90px] pointer-events-none animate-drift2" />
 
         {/* Back Link */}
-        <div className="max-w-[1140px] mx-auto text-left mb-6">
+        <div className="max-w-[1140px] mx-auto text-left mb-5 sm:mb-6">
           <Link
             href="/profile"
-            className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-[#EAF3ED] bg-white/[0.08] hover:bg-white/[0.14] border border-white/10 px-4 py-2 rounded-full transition-colors"
+            className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-[#EAF3ED] bg-white/[0.08] hover:bg-white/[0.14] border border-white/10 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full transition-colors"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Back to Profile</span>
@@ -125,14 +125,14 @@ export default function TransactionsPage() {
         </div>
 
         <div className="relative z-10 max-w-[640px] mx-auto">
-          <span className="inline-flex items-center gap-2 font-mono text-xs text-[#7DE8B8] bg-[#17C97F]/12 border border-[#17C97F]/25 px-3.5 py-1.5 rounded-full mb-4 tracking-wide uppercase">
+          <span className="inline-flex items-center gap-2 font-mono text-[11px] sm:text-xs text-[#7DE8B8] bg-[#17C97F]/12 border border-[#17C97F]/25 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full mb-3 sm:mb-4 tracking-wide uppercase">
             <span className="w-1.5 h-1.5 rounded-full bg-[#7DE8B8] animate-pulse-dot" />
             <span>Billing | Talk Time Minutes</span>
           </span>
-          <h1 className="text-3xl sm:text-4xl font-display font-extrabold text-white mb-2 tracking-tight">
+          <h1 className="text-2xl xs:text-3xl sm:text-4xl font-display font-extrabold text-white mb-2 tracking-tight">
             Transaction History &amp; Top-Ups
           </h1>
-          <p className="text-[#9AB0A5] text-sm sm:text-base">
+          <p className="text-[#9AB0A5] text-xs sm:text-base">
             Review your subscription history, minute purchases, and Stripe payment receipts.
           </p>
         </div>
